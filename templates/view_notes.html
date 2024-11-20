@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Notes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #1f4037;
+            margin-bottom: 30px;
+        }
+        .upload-btn {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            background: #1f4037;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .upload-btn:hover {
+            background: #145b28;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        ul li a {
+            text-decoration: none;
+            color: #1f4037;
+            font-weight: bold;
+        }
+        ul li a:hover {
+            color: #99f2c8;
+        }
+        .note-meta {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .icon {
+            margin-right: 10px;
+            color: #1f4037;
+        }
+        .no-notes {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Notes</h1>
+        {% if current_user.role == 'teacher' %}
+            <a href="{{ url_for('upload_notes') }}" class="upload-btn"><i class="fas fa-upload"></i> Upload Notes</a>
+        {% endif %}
+        {% if notes %}
+            <ul>
+                {% for note in notes %}
+                    <li>
+                        <div>
+                            <i class="fas fa-file-alt icon"></i>
+                            <a href="{{ url_for('static', filename='notes/' + note.filename) }}" target="_blank">{{ note.filename }}</a>
+                            <div class="note-meta">
+                                Uploaded by: {{ note.teacher.username }} on {{ note.uploaded_at.strftime('%Y-%m-%d') }}
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="no-notes">No notes uploaded yet.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

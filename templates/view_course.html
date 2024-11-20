@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course: {{ course.name }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 20px 30px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #1f4037;
+            margin-bottom: 20px;
+        }
+        .course-details {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .course-details p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin: 5px;
+        }
+        .btn-primary {
+            background: #1f4037;
+        }
+        .btn-primary:hover {
+            background: #145b28;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            font-size: 16px;
+            color: #1f4037;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="course-details">
+            <h1>Course: {{ course.name }}</h1>
+            <p><strong>Description:</strong> {{ course.description }}</p>
+
+            {% if current_user.role == 'teacher' %}
+                <h3>Enrolled Students</h3>
+                {% if enrolled_students %}
+                    <ul>
+                        {% for student in enrolled_students %}
+                            <li>{{ student.username }}</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No students enrolled yet.</p>
+                {% endif %}
+                <div class="actions">
+                    <a href="{{ url_for('edit_course', course_id=course.id) }}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Edit Course
+                    </a>
+                    <a href="{{ url_for('delete_course', course_id=course.id) }}" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Delete Course
+                    </a>
+                </div>
+            {% elif current_user.role == 'student' %}
+                <h3>Enrollment Status</h3>
+                {% if current_user.id in enrolled_student_ids %}
+                    <p>You are enrolled in this course.</p>
+                    <a href="{{ url_for('unenroll_course', course_id=course.id) }}" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Unenroll
+                    </a>
+                {% else %}
+                    <p>You are not enrolled in this course.</p>
+                    <a href="{{ url_for('enroll_course', course_id=course.id) }}" class="btn btn-success">
+                        <i class="fas fa-check-circle"></i> Enroll
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div class="back-link">
+            <a href="{{ url_for('view_courses') }}"><i class="fas fa-arrow-left"></i> Back to Courses</a>
+        </div>
+    </div>
+</body>
+</html>
