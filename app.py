@@ -9,7 +9,7 @@ import jwt,datetime,os,random,string
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-NOTES_UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads', 'notes')
+NOTES_UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'notes')
 SUBMISSIONS_UPLOAD_FOLDER = os.path.join(os.getcwd(), 'uploads', 'submissions')
 ALLOWED_EXTENSIONS = {'pdf', 'txt', 'docx'}
 os.makedirs(NOTES_UPLOAD_FOLDER, exist_ok=True)
@@ -241,7 +241,6 @@ def upload_notes():
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['NOTES_UPLOAD_FOLDER'], filename)
             file.save(filepath)
-            # Save note info in the database
             new_note = Notes(filename=filename, file_path=filepath, teacher_id=current_user.id)
             db.session.add(new_note)
             db.session.commit()
