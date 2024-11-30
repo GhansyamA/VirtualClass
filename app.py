@@ -115,8 +115,6 @@ def start_meeting():
     jitsi_url = f"https://meet.jit.si/{active_meeting.room_name}"
     return render_template('start_meeting.html', jitsi_url=jitsi_url)
 
-
-
 @app.route('/join_meeting', methods=['GET'])
 @login_required
 def join_meeting():
