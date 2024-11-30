@@ -1,0 +1,20 @@
+cloud name : db4yqbqvm
+api key : 432595566277664
+api secret : 2ZXLUV4xrsEbrkiJNGViCNGhXSU
+
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+cloudinary.config(
+    cloud_name='db4yqbqvm',
+    api_key='432595566277664',
+    api_secret='2ZXLUV4xrsEbrkiJNGViCNGhXSU'
+)
+
+DROPBOX
+access token : sl.CBvl1LFuS-UJb_ISZRayQfgOV7yfNmlb6blcBQmdHhtXsS_0DvKO11X3dBplrB77DnP6MI8_thvxwmM8M8HKld2N5ChzHtdxu2tnE-VicB776CnAY4h1Rpt5CDTCsxe0h-gSeb1m8bJD
+
+SUPABASE
+db pass : virtualclass123
+SUPABASE_URL = "https://zplmaprxfpfzmlaywyno.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbG1hcHJ4ZnBmem1sYXl3eW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5ODc0MTEsImV4cCI6MjA0ODU2MzQxMX0.YhLr03RloOoibQXS_ZDSL_LBHRdfDrFXK85c32AV9bk"

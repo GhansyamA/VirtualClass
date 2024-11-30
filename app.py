@@ -6,6 +6,11 @@ from forms import LoginForm, RegisterForm, NoteUploadForm, AssignmentCreationFor
 from werkzeug.utils import secure_filename
 import datetime,os,random,string
 
+from supabase import create_client, Client
+SUPABASE_URL = "https://zplmaprxfpfzmlaywyno.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbG1hcHJ4ZnBmem1sYXl3eW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5ODc0MTEsImV4cCI6MjA0ODU2MzQxMX0.YhLr03RloOoibQXS_ZDSL_LBHRdfDrFXK85c32AV9bk"
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -39,9 +44,11 @@ def register():
     form = RegisterForm()
     if form.validate_on_submit():
         hashed_password = generate_password_hash(form.password.data)
-        new_user = User(username=form.username.data, password=hashed_password, role=form.role.data)
-        db.session.add(new_user)
-        db.session.commit()
+        response = supabase.table('user').insert([{
+            'username': form.username.data,
+            'password': hashed_password,
+            'role': form.role.data
+        }]).execute()
         flash('Account created successfully!', 'success')
         return redirect(url_for('login'))
     return render_template('register.html', form=form)
@@ -177,10 +184,16 @@ def create_course():
 @login_required
 def view_courses():
     if current_user.role == 'teacher':
-        courses = Course.query.filter_by(teacher_id=current_user.id).all()
+        response = supabase.table('courses').select('*').eq('teacher_id', current_user.id).execute()
     elif current_user.role == 'student':
-        courses = Course.query.all()
-    return render_template('view_courses.html', courses=courses)
+        response = supabase.table('courses').select('*').execute()
+
+    if response.status_code == 200:
+        courses = response.json()
+        return render_template('view_courses.html', courses=courses)
+    else:
+        flash(f"Error: {response.json()}", 'danger')
+        return redirect(url_for('dashboard'))
 
 @app.route('/edit_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
@@ -329,21 +342,29 @@ def view_notes():
 def create_assignment():
     if current_user.role != 'teacher':
         return redirect(url_for('index'))
+
     selected_course_id = session.get('selected_course_id')
     if not selected_course_id:
         return redirect(url_for('select_course'))
+
     form = AssignmentCreationForm()
     if form.validate_on_submit():
-        assignment = Assignment(
-            title=form.title.data,
-            description=form.description.data,
-            due_date=form.due_date.data,
-            teacher_id=current_user.id,
-            course_id=selected_course_id
-        )
-        db.session.add(assignment)
-        db.session.commit()
-        return redirect(url_for('view_assignments'))
+        # Convert datetime to ISO 8601 string format
+        due_date_str = form.due_date.data.isoformat()
+
+        response = supabase.table('assignment').insert([{
+            'title': form.title.data,
+            'description': form.description.data,
+            'due_date': due_date_str,
+            'teacher_id': current_user.id,
+            'course_id': selected_course_id
+        }]).execute()
+
+        if response.status_code == 201:
+            return redirect(url_for('view_assignments'))
+        else:
+            flash(f"Error: {response.json()}", 'danger')
+
     return render_template('create_assignment.html', form=form)
 
 @app.route('/view_assignments')
