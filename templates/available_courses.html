@@ -4,7 +4,7 @@
         <ul>
             {% for course in available_courses %}
                 <li>
-                    <p>{{ course.name }}</p>
+                    <p><strong>{{ course.name }}</strong></p>
                     <p>{{ course.description }}</p>
                     <button type="submit" name="course_id" value="{{ course.id }}" class="btn btn-primary">Enroll</button>
                 </li>

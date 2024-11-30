@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, request, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Notes, Assignment, Submission, Course, Enrollment, ActiveMeeting
+from models import db, User, Assignment
 from forms import LoginForm, RegisterForm, NoteUploadForm, AssignmentCreationForm, AssignmentSubmissionForm, NoteUploadForm, CourseForm
 from werkzeug.utils import secure_filename
 import datetime,os,random,string
@@ -14,13 +14,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-NOTES_UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'notes')
-SUBMISSIONS_UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'submissions')
 ALLOWED_EXTENSIONS = {'pdf', 'txt', 'docx'}
-os.makedirs(NOTES_UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(SUBMISSIONS_UPLOAD_FOLDER, exist_ok=True)
-app.config['NOTES_UPLOAD_FOLDER'] = NOTES_UPLOAD_FOLDER
-app.config['SUBMISSIONS_UPLOAD_FOLDER'] = SUBMISSIONS_UPLOAD_FOLDER
 JWT_SECRET_KEY = "your_jitsi_secret_key"
 
 db.init_app(app)
@@ -37,7 +31,11 @@ def generate_room_name():
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    response = supabase.table('user').select('*').eq('id', user_id).execute()
+    if response.data:
+        user_data = response.data[0]
+        return User(id=user_data['id'], username=user_data['username'], role=user_data['role'])
+    return None
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -57,10 +55,12 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user and check_password_hash(user.password, form.password.data):
-            login_user(user)
-            return redirect(url_for('select_course'))
+        response = supabase.table('user').select('*').eq('username', form.username.data).execute()
+        if response.data:
+            user_data = response.data[0]
+            if check_password_hash(user_data['password'], form.password.data):
+                login_user(User(id=user_data['id'], username=user_data['username'], role=user_data['role']))
+                return redirect(url_for('select_course'))
         flash('Invalid username or password', 'danger')
     return render_template('login.html', form=form)
 
@@ -69,7 +69,10 @@ def login():
 def select_course():
     if current_user.role != 'teacher':
         return redirect(url_for('dashboard'))
-    courses = Course.query.filter_by(teacher_id=current_user.id).all()
+    response = supabase.table('course').select('*').eq('teacher_id', current_user.id).execute()
+    courses = []
+    if response and response.data:
+        courses = response.data
     if not courses:
         return redirect(url_for('create_course'))
     if request.method == 'POST':
@@ -86,16 +89,19 @@ def dashboard():
         selected_course_id = session.get('selected_course_id')
         if not selected_course_id:
             return redirect(url_for('select_course'))
-        current_course = Course.query.get(selected_course_id)
-        if not current_course or current_course.teacher_id != current_user.id:
+        response = supabase.table('course').select('*').eq('id', selected_course_id).execute()
+        current_course = response.data[0] if response else None
+        if not current_course or current_course['teacher_id'] != current_user.id:
             return redirect(url_for('select_course'))
-        active_meetings = ActiveMeeting.query.filter_by(teacher_id=current_user.id).all()
-        return render_template('dashboard.html', current_course=current_course,active_meetings=active_meetings)
+        response = supabase.table('active_meetings').select('*').eq('teacher_id', current_user.id).execute()
+        active_meetings = response.data if response else []
+        return render_template('dashboard.html', current_course=current_course, active_meetings=active_meetings)
     else:
-        enrolled_courses = [enrollment.course_id for enrollment in current_user.enrollments]
-        active_meetings = ActiveMeeting.query.filter(ActiveMeeting.course_id.in_(enrolled_courses)).all()
+        enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
+        response = supabase.table('active_meetings').select('*').in_('course_id', enrolled_courses).execute()
+        active_meetings = response.data if response else []
         return render_template('dashboard.html', active_meetings=active_meetings)
-
+    
 @app.route('/start_meeting', methods=['POST'])
 @login_required
 def start_meeting():
@@ -106,21 +112,22 @@ def start_meeting():
     if not selected_course_id:
         flash('No course selected. Please select a course first.', 'danger')
         return redirect(url_for('select_course'))
-    existing_meeting = ActiveMeeting.query.filter_by(course_id=selected_course_id).first()
-    if existing_meeting:
+    response = supabase.table('active_meetings').select('*').eq('course_id', selected_course_id).execute()
+    if response.status_code == 200 and response.data:
         flash('A meeting for this course is already active.', 'danger')
         return redirect(url_for('dashboard'))
     room_name = generate_room_name()
-    active_meeting = ActiveMeeting(
-        room_name=room_name,
-        teacher_id=current_user.id,
-        course_id=selected_course_id
-    )
-    db.session.add(active_meeting)
-    db.session.commit()
-    flash('Meeting started successfully! Share the link with students.', 'success')
-    jitsi_url = f"https://meet.jit.si/{active_meeting.room_name}"
-    return render_template('start_meeting.html', jitsi_url=jitsi_url)
+    response = supabase.table('active_meetings').insert([{
+        'room_name': room_name,
+        'teacher_id': current_user.id,
+        'course_id': selected_course_id
+    }]).execute()
+    if response.status_code == 201:
+        flash('Meeting started successfully! Share the link with students.', 'success')
+        jitsi_url = f"https://meet.jit.si/{room_name}"
+        return render_template('start_meeting.html', jitsi_url=jitsi_url)
+    flash('Error starting the meeting. Please try again later.', 'danger')
+    return redirect(url_for('dashboard'))
 
 @app.route('/join_meeting', methods=['GET'])
 @login_required
@@ -132,12 +139,13 @@ def join_meeting():
     if not selected_course_id:
         flash('No course selected. Please select a course first.', 'danger')
         return redirect(url_for('select_course'))
-    active_meeting = ActiveMeeting.query.filter_by(course_id=selected_course_id).first()
-    if not active_meeting:
-        flash('No active meeting for the selected course.', 'danger')
-        return redirect(url_for('dashboard'))
-    jitsi_url = f"https://meet.jit.si/{active_meeting.room_name}"
-    return redirect(jitsi_url)
+    response = supabase.table('active_meetings').select('*').eq('course_id', selected_course_id).execute()
+    if response.status_code == 200 and response.data:
+        active_meeting = response.data[0]
+        jitsi_url = f"https://meet.jit.si/{active_meeting['room_name']}"
+        return redirect(jitsi_url)
+    flash('No active meeting for the selected course.', 'danger')
+    return redirect(url_for('dashboard'))
 
 @app.route('/stop_meeting', methods=['GET'])
 @login_required
@@ -149,18 +157,14 @@ def stop_meeting():
     if not selected_course_id:
         flash('No course selected. Please select a course first.', 'danger')
         return redirect(url_for('select_course'))
-    active_meeting = ActiveMeeting.query.filter_by(course_id=selected_course_id).first()
-    if not active_meeting:
-        flash('No active meeting for the selected course.', 'danger')
-        return redirect(url_for('dashboard'))
-    try:
-        db.session.delete(active_meeting)
-        db.session.commit()
-        flash('Meeting stopped successfully. You can now start a new meeting.', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash('Error stopping the meeting. Please try again later.', 'danger')
-        print(f"Error: {e}")
+    response = supabase.table('active_meetings').select('*').eq('course_id', selected_course_id).execute()
+    if response.status_code == 200 and response.data:
+        active_meeting = response.data[0]
+        response = supabase.table('active_meetings').delete().eq('id', active_meeting['id']).execute()
+        if response.status_code == 200:
+            flash('Meeting stopped successfully. You can now start a new meeting.', 'success')
+            return redirect(url_for('dashboard'))
+    flash('Error stopping the meeting. Please try again later.', 'danger')
     return redirect(url_for('dashboard'))
 
 @app.route('/create_course', methods=['GET', 'POST'])
@@ -170,25 +174,26 @@ def create_course():
         return redirect(url_for('index'))
     form = CourseForm()
     if form.validate_on_submit():
-        course = Course(
-            name=form.name.data,
-            description=form.description.data,
-            teacher_id=current_user.id
-        )
-        db.session.add(course)
-        db.session.commit()
-        return redirect(url_for('select_course'))
+        course_data = {
+            'name': form.name.data,
+            'description': form.description.data,
+            'teacher_id': current_user.id
+        }
+        response = supabase.table('course').insert([course_data]).execute()
+        if response:
+            return redirect(url_for('select_course'))
+        else:
+            flash(f"Error: {response.json()}", 'danger')
     return render_template('create_course.html', form=form)
 
 @app.route('/view_courses')
 @login_required
 def view_courses():
     if current_user.role == 'teacher':
-        response = supabase.table('courses').select('*').eq('teacher_id', current_user.id).execute()
+        response = supabase.table('course').select('*').eq('teacher_id', current_user.id).execute()
     elif current_user.role == 'student':
-        response = supabase.table('courses').select('*').execute()
-
-    if response.status_code == 200:
+        response = supabase.table('course').select('*').execute()
+    if response:
         courses = response.json()
         return render_template('view_courses.html', courses=courses)
     else:
@@ -198,36 +203,49 @@ def view_courses():
 @app.route('/edit_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def edit_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    if course.teacher_id != current_user.id:
-        flash('You do not have permission to edit this course.', 'danger')
+    response = supabase.table('courses').select('*').eq('id', course_id).execute()
+    if response.status_code == 200 and len(response.json()) == 1:
+        course = response.json()[0]
+        if course['teacher_id'] != current_user.id:
+            flash('You do not have permission to edit this course.', 'danger')
+            return redirect(url_for('view_courses'))
+        form = CourseForm()
+        if form.validate_on_submit():
+            updated_data = {
+                'name': form.name.data,
+                'description': form.description.data
+            }
+            response = supabase.table('courses').update(updated_data).eq('id', course_id).execute()
+            if response.status_code == 200:
+                flash('Course updated successfully!', 'success')
+                return redirect(url_for('view_course', course_id=course_id))
+            else:
+                flash(f"Error: {response.json()}", 'danger')
+        form.name.data = course['name']
+        form.description.data = course['description']
+        return render_template('create_course.html', form=form)
+    else:
+        flash('Course not found.', 'danger')
         return redirect(url_for('view_courses'))
-    form = CourseForm()
-    if form.validate_on_submit():
-        course.name = form.name.data
-        course.description = form.description.data
-        db.session.commit()
-        flash('Course updated successfully!', 'success')
-        return redirect(url_for('view_course', course_id=course.id))
-    form.name.data = course.name
-    form.description.data = course.description
-    return render_template('create_course.html', form=form)
 
 @app.route('/delete_course/<int:course_id>', methods=['GET'])
 @login_required
 def delete_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    if course.teacher_id != current_user.id:
-        flash('You do not have permission to delete this course.', 'danger')
-        return redirect(url_for('view_courses'))
-    try:
-        db.session.delete(course)
-        db.session.commit()
-        flash('Course deleted successfully!', 'success')
-    except Exception as e:
-        db.session.rollback()  # In case of any error, rollback the transaction
-        flash('Error deleting course. Please try again later.', 'danger')
-        print(f"Error: {e}")
+    response = supabase.table('courses').select('*').eq('id', course_id).execute()
+    if response.status_code == 200 and len(response.json()) == 1:
+        course = response.json()[0]
+        if course['teacher_id'] != current_user.id:
+            flash('You do not have permission to delete this course.', 'danger')
+            return redirect(url_for('view_courses'))
+        try:
+            response = supabase.table('courses').delete().eq('id', course_id).execute()
+            if response.status_code == 200:
+                flash('Course deleted successfully!', 'success')
+            else:
+                flash(f"Error deleting course: {response.json()}", 'danger')
+        except Exception as e:
+            flash('Error deleting course. Please try again later.', 'danger')
+            print(f"Error: {e}")
     return redirect(url_for('view_courses'))
 
 @app.route('/available_courses', methods=['GET', 'POST'])
@@ -236,31 +254,40 @@ def available_courses():
     if current_user.role != 'student':
         flash('Only students can enroll in courses.', 'danger')
         return redirect(url_for('dashboard'))
-    enrolled_course_ids = [enrollment.course_id for enrollment in current_user.enrollments]
-    available_courses = Course.query.filter(Course.id.notin_(enrolled_course_ids)).all()
-    if request.method == 'POST':
-        course_id = request.form.get('course_id')
-        course = Course.query.get(course_id)
-        if course:
-            enrollment = Enrollment(student_id=current_user.id, course_id=course.id)
-            db.session.add(enrollment)
-            db.session.commit()
-            flash(f'You have been enrolled in {course.name}!', 'success')
-            return redirect(url_for('dashboard'))
-    return render_template('available_courses.html', available_courses=available_courses)
+    enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
+    query = supabase.table('course').select('*')
+    for course_id in enrolled_courses:
+        query = query.not_('id', course_id)
+    response = query.execute()
+    if response:
+        available_courses = response.json()
+        if request.method == 'POST':
+            course_id = request.form.get('course_id')
+            enrollment = {
+                'student_id': current_user.id,
+                'course_id': course_id
+            }
+            enroll_response = supabase.table('enrollments').insert([enrollment]).execute()
+            if enroll_response:
+                flash(f'You have been enrolled in the course!', 'success')
+                return redirect(url_for('dashboard'))
+        return render_template('available_courses.html', available_courses=available_courses)
+    else:
+        return redirect(url_for('dashboard'))
 
 @app.route('/view_course/<int:course_id>', methods=['GET'])
 @login_required
 def view_course(course_id):
-    course = Course.query.get_or_404(course_id)
-    enrolled_students = [enrollment.student for enrollment in course.students]
-    enrolled_student_ids = [student.id for student in enrolled_students]
-    return render_template(
-        'view_course.html',
-        course=course,
-        enrolled_students=enrolled_students,
-        enrolled_student_ids=enrolled_student_ids
-    )
+    response = supabase.table('courses').select('*').eq('id', course_id).execute()
+    if response.status_code == 200 and len(response.json()) == 1:
+        course = response.json()[0]
+        enrolled_students = supabase.table('enrollments').select('student_id').eq('course_id', course_id).execute().json()
+        student_ids = [student['student_id'] for student in enrolled_students]
+        enrolled_students_details = supabase.table('users').select('*').in_('id', student_ids).execute().json()
+        return render_template('view_course.html', course=course, enrolled_students=enrolled_students_details)
+    else:
+        flash('Course not found.', 'danger')
+        return redirect(url_for('view_courses'))
 
 @app.route('/enroll_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
@@ -268,16 +295,20 @@ def enroll_course(course_id):
     if current_user.role != 'student':
         flash('Only students can enroll in courses.', 'danger')
         return redirect(url_for('dashboard'))
-    course = Course.query.get_or_404(course_id)
-    existing_enrollment = Enrollment.query.filter_by(student_id=current_user.id, course_id=course.id).first()
-    if existing_enrollment:
+    response = supabase.table('enrollments').select('*').eq('student_id', current_user.id).eq('course_id', course_id).execute()
+    if response.status_code == 200 and len(response.json()) > 0:
         flash('You are already enrolled in this course.', 'danger')
-        return redirect(request.referrer)  # Redirect to the previous page
-    enrollment = Enrollment(student_id=current_user.id, course_id=course.id)
-    db.session.add(enrollment)
-    db.session.commit()
-    flash('You have successfully enrolled in the course!', 'success')
-    return redirect(request.referrer)  # Redirect to the previous page
+        return redirect(request.referrer)
+    enrollment = {
+        'student_id': current_user.id,
+        'course_id': course_id
+    }
+    response = supabase.table('enrollments').insert([enrollment]).execute()
+    if response.status_code == 201:
+        flash('You have successfully enrolled in the course!', 'success')
+    else:
+        flash(f"Error: {response.json()}", 'danger')
+    return redirect(request.referrer)
 
 @app.route('/unenroll/<int:course_id>', methods=['POST'])
 @login_required
@@ -285,16 +316,14 @@ def unenroll(course_id):
     if current_user.role != 'student':
         flash('Only students can unenroll from courses.', 'danger')
         return redirect(url_for('dashboard'))
-    enrollment = Enrollment.query.filter_by(student_id=current_user.id, course_id=course_id).first()
-    if enrollment:
-        try:
-            db.session.delete(enrollment)
-            db.session.commit()
+    response = supabase.table('enrollments').select('*').eq('student_id', current_user.id).eq('course_id', course_id).execute()
+    if response.status_code == 200 and len(response.json()) > 0:
+        enrollment = response.json()[0]
+        delete_response = supabase.table('enrollments').delete().eq('id', enrollment['id']).execute()
+        if delete_response.status_code == 200:
             flash('You have successfully unenrolled from the course.', 'success')
-        except Exception as e:
-            db.session.rollback()
+        else:
             flash('Error unenrolling from the course. Please try again later.', 'danger')
-            print(f"Error: {e}")
     else:
         flash('You are not enrolled in this course.', 'danger')
     return redirect(url_for('dashboard'))
@@ -314,16 +343,18 @@ def upload_notes():
             filename = secure_filename(file.filename)
             file_path = os.path.join(app.config['NOTES_UPLOAD_FOLDER'], filename)
             file.save(file_path)
-            note = Notes(
-                filename=filename,
-                file_path=file_path,
-                uploaded_at=datetime.datetime.now(),
-                teacher_id=current_user.id,
-                course_id=selected_course_id
-            )
-            db.session.add(note)
-            db.session.commit()
-            return redirect(url_for('view_notes'))
+            note_data = {
+                'filename': filename,
+                'file_path': file_path,
+                'uploaded_at': datetime.datetime.now().isoformat(),
+                'teacher_id': current_user.id,
+                'course_id': selected_course_id
+            }
+            response = supabase.table('notes').insert([note_data]).execute()
+            if response.status_code == 201:
+                return redirect(url_for('view_notes'))
+            else:
+                flash(f"Error: {response.json()}", 'danger')
     return render_template('upload_notes.html', form=form)
 
 @app.route('/view_notes')
@@ -331,40 +362,40 @@ def upload_notes():
 def view_notes():
     selected_course_id = session.get('selected_course_id')
     if current_user.role == 'teacher' and selected_course_id:
-        notes = Notes.query.filter_by(teacher_id=current_user.id, course_id=selected_course_id).all()
+        response = supabase.table('notes').select('*').eq('teacher_id', current_user.id).eq('course_id', selected_course_id).execute()
     else:
-        enrolled_courses = [enrollment.course_id for enrollment in current_user.enrollments]
-        notes = Notes.query.filter(Notes.course_id.in_(enrolled_courses)).all()
-    return render_template('view_notes.html', notes=notes)
+        enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
+        response = supabase.table('notes').select('*').in_('course_id', enrolled_courses).execute()
+    if response:
+        notes = response.json()
+        return render_template('view_notes.html', notes=notes)
+    else:
+        flash(f"Error fetching notes: {response.json()}", 'danger')
+        return redirect(url_for('dashboard'))
 
 @app.route('/create_assignment', methods=['GET', 'POST'])
 @login_required
 def create_assignment():
     if current_user.role != 'teacher':
         return redirect(url_for('index'))
-
     selected_course_id = session.get('selected_course_id')
     if not selected_course_id:
         return redirect(url_for('select_course'))
-
     form = AssignmentCreationForm()
     if form.validate_on_submit():
-        # Convert datetime to ISO 8601 string format
         due_date_str = form.due_date.data.isoformat()
-
-        response = supabase.table('assignment').insert([{
+        assignment_data = {
             'title': form.title.data,
             'description': form.description.data,
             'due_date': due_date_str,
             'teacher_id': current_user.id,
             'course_id': selected_course_id
-        }]).execute()
-
+        }
+        response = supabase.table('assignments').insert([assignment_data]).execute()
         if response.status_code == 201:
             return redirect(url_for('view_assignments'))
         else:
             flash(f"Error: {response.json()}", 'danger')
-
     return render_template('create_assignment.html', form=form)
 
 @app.route('/view_assignments')
@@ -372,11 +403,21 @@ def create_assignment():
 def view_assignments():
     selected_course_id = session.get('selected_course_id')
     if current_user.role == 'teacher' and selected_course_id:
-        assignments = Assignment.query.filter_by(teacher_id=current_user.id, course_id=selected_course_id).all()
+        response = supabase.table('assignment').select('*').eq('teacher_id', current_user.id).eq('course_id', selected_course_id).execute()
     else:
-        enrolled_courses = [enrollment.course_id for enrollment in current_user.enrollments]
-        assignments = Assignment.query.filter(Assignment.course_id.in_(enrolled_courses)).all()
-    return render_template('view_assignments.html', assignments=assignments)
+        enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
+        response = supabase.table('assignment').select('*').in_('course_id', enrolled_courses).execute()
+    if response:
+        assignments = response.json()
+        for assignment in assignments:
+            if isinstance(assignment['due_date'], str):  # Check if due_date is a string
+                assignment['formatted_due_date'] = datetime.datetime.strptime(assignment['due_date'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                assignment['formatted_due_date'] = assignment['due_date'].strftime('%Y-%m-%d %H:%M:%S')
+        return render_template('view_assignments.html', assignments=assignments)
+    else:
+        flash(f"Error fetching assignments: {response.json()}", 'danger')
+        return redirect(url_for('dashboard'))
 
 @app.route('/submit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
 @login_required
@@ -392,36 +433,39 @@ def submit_assignment(assignment_id):
             filename = secure_filename(file.filename)
             filepath = os.path.join(app.config['SUBMISSIONS_UPLOAD_FOLDER'], filename)
             file.save(filepath)
-            submission = Submission(
-                file_name=filename,
-                file_path=filepath,
-                student_id=current_user.id,
-                assignment_id=assignment.id,
-                submitted_at=datetime.datetime.now()
-            )
-            db.session.add(submission)
-            db.session.commit()
-            flash('Assignment submitted successfully!', 'success')
-            return redirect(url_for('view_assignments'))
+            submission = {
+                'file_name': filename,
+                'file_path': filepath,
+                'student_id': current_user.id,
+                'assignment_id': assignment.id,
+                'submitted_at': datetime.datetime.now().isoformat()
+            }
+            response = supabase.table('submissions').insert([submission]).execute()
+            if response.status_code == 201:
+                flash('Assignment submitted successfully!', 'success')
+                return redirect(url_for('view_assignments'))
+            else:
+                flash(f"Error: {response.json()}", 'danger')
     return render_template('submit_assignment.html', form=form, assignment=assignment)
 
 @app.route('/view_submissions/<int:assignment_id>', methods=['GET', 'POST'])
 @login_required
 def view_submissions(assignment_id):
-    assignment = Assignment.query.get_or_404(assignment_id)
-    if assignment.teacher_id != current_user.id:
+    assignment = supabase.table('assignments').select('*').eq('id', assignment_id).execute().json()
+    if assignment and assignment[0]['teacher_id'] != current_user.id:
         flash('You do not have permission to view these submissions.', 'danger')
         return redirect(url_for('dashboard'))
-    submissions = Submission.query.filter_by(assignment_id=assignment.id).all()
+    submissions = supabase.table('submissions').select('*').eq('assignment_id', assignment_id).execute().json()
     if request.method == 'POST':
         for submission in submissions:
-            marks_key = f"marks_{submission.id}"
+            marks_key = f"marks_{submission['id']}"
             marks = request.form.get(marks_key)
             if marks:
-                submission.marks = int(marks)
+                response = supabase.table('submissions').update({'marks': marks}).eq('id', submission['id']).execute()
+                if response.status_code != 200:
+                    flash(f"Error: {response.json()}", 'danger')
         db.session.commit()
         flash('Marks updated successfully!', 'success')
-        return redirect(url_for('view_submissions', assignment_id=assignment.id))
     return render_template('view_submissions.html', assignment=assignment, submissions=submissions)
 
 @app.route('/logout')
