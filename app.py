@@ -306,6 +306,25 @@ def submit_assignment(assignment_id):
             return redirect(url_for('view_assignments'))
     return render_template('submit_assignment.html', form=form, assignment=assignment)
 
+@app.route('/view_submissions/<int:assignment_id>', methods=['GET', 'POST'])
+@login_required
+def view_submissions(assignment_id):
+    assignment = Assignment.query.get_or_404(assignment_id)
+    if assignment.teacher_id != current_user.id:
+        flash('You do not have permission to view these submissions.', 'danger')
+        return redirect(url_for('dashboard'))
+    submissions = Submission.query.filter_by(assignment_id=assignment.id).all()
+    if request.method == 'POST':
+        for submission in submissions:
+            marks_key = f"marks_{submission.id}"
+            marks = request.form.get(marks_key)
+            if marks:
+                submission.marks = int(marks)
+        db.session.commit()
+        flash('Marks updated successfully!', 'success')
+        return redirect(url_for('view_submissions', assignment_id=assignment.id))
+    return render_template('view_submissions.html', assignment=assignment, submissions=submissions)
+
 @app.route('/logout')
 @login_required
 def logout():

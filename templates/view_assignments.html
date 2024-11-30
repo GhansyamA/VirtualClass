@@ -97,6 +97,9 @@
                     <h3>{{ assignment.title }}</h3>
                     <p>{{ assignment.description }}</p>
                     <p><strong>Due Date:</strong> {{ assignment.due_date.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                    {% if current_user.role == 'teacher' %}
+                        <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}">View Submissions</a>
+                    {% endif %}
                     {% if current_user.role == 'student' %}
                         <a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}" class="btn btn-primary"><i class="fas fa-upload"></i> Submit</a>
                     {% endif %}
