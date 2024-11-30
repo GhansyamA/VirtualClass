@@ -113,7 +113,9 @@ def start_meeting():
     db.session.commit()
     flash('Meeting started successfully! Share the link with students.', 'success')
     jitsi_url = f"https://meet.jit.si/{active_meeting.room_name}"
-    return redirect(jitsi_url)
+    return render_template('start_meeting.html', jitsi_url=jitsi_url)
+
+
 
 @app.route('/join_meeting', methods=['GET'])
 @login_required
