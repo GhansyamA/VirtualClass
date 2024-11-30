@@ -133,11 +133,16 @@
         </ul>
         {% if current_user.role == 'student' %}
             <h2>Enrolled Courses</h2>
-                <ul>
+            <ul>
                 {% for enrollment in current_user.enrollments %}
-                    <li>{{ enrollment.course.name }}</li>
+                    <li>
+                        <p>{{ enrollment.course.name }} </p>
+                        <form action="{{ url_for('unenroll', course_id=enrollment.course.id) }}" method="POST">
+                            <button type="submit" >Unenroll</button>
+                        </form>
+                    </li>
                 {% endfor %}
-                </ul>
+            </ul>
             <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Enroll in More Courses</a>
         {% endif %}
         <div class="section">

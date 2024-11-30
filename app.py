@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Notes, Assignment, Submission, Course, Enrollment, ActiveMeeting
 from forms import LoginForm, RegisterForm, NoteUploadForm, AssignmentCreationForm, AssignmentSubmissionForm, NoteUploadForm, CourseForm
 from werkzeug.utils import secure_filename
-import jwt,datetime,os,random,string
+import datetime,os,random,string
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -266,25 +266,25 @@ def enroll_course(course_id):
     flash('You have successfully enrolled in the course!', 'success')
     return redirect(request.referrer)  # Redirect to the previous page
 
-@app.route('/unenroll_course/<int:course_id>', methods=['GET'])
+@app.route('/unenroll/<int:course_id>', methods=['POST'])
 @login_required
-def unenroll_course(course_id):
+def unenroll(course_id):
     if current_user.role != 'student':
         flash('Only students can unenroll from courses.', 'danger')
         return redirect(url_for('dashboard'))
     enrollment = Enrollment.query.filter_by(student_id=current_user.id, course_id=course_id).first()
-    if not enrollment:
+    if enrollment:
+        try:
+            db.session.delete(enrollment)
+            db.session.commit()
+            flash('You have successfully unenrolled from the course.', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error unenrolling from the course. Please try again later.', 'danger')
+            print(f"Error: {e}")
+    else:
         flash('You are not enrolled in this course.', 'danger')
-        return redirect(request.referrer)  # Redirect to the previous page
-    try:
-        db.session.delete(enrollment)
-        db.session.commit()
-        flash('You have successfully unenrolled from the course.', 'success')
-    except Exception as e:
-        db.session.rollback()  # Rollback if any error occurs
-        flash('Error unenrolling from the course. Please try again later.', 'danger')
-        print(f"Error: {e}")
-    return redirect(request.referrer)  # Redirect to the previous page
+    return redirect(url_for('dashboard'))
 
 @app.route('/upload_notes', methods=['GET', 'POST'])
 @login_required

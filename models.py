@@ -7,7 +7,7 @@ class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
-    role = db.Column(db.String(50), nullable=False)  # 'student' or 'teacher'
+    role = db.Column(db.String(50), nullable=False)
 
 class Assignment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -75,4 +75,3 @@ class Enrollment(db.Model):
     course = db.relationship('Course', backref='enrolled_course', lazy=True)
     def __repr__(self):
         return f'<Enrollment {self.student_id} in {self.course_id}>'
-
