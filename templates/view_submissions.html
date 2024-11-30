@@ -1,7 +1,6 @@
   <h2>Submissions for Assignment: {{ assignment.title }}</h2>
   <p><strong>Description:</strong> {{ assignment.description }}</p>
   <p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
-
   <form method="POST">
     <table border="1">
       <thead>
@@ -21,7 +20,7 @@
                 {{ submission.file_name }}
               </a>
             </td>
-            <td>{{ submission.assignment.due_date }}</td>
+            <td>{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             <td>
               <input type="number" name="marks_{{ submission.id }}" value="{{ submission.marks or '' }}" required>
             </td>
@@ -31,6 +30,4 @@
     </table>
     <button type="submit">Save Marks</button>
   </form>
-
   <a href="{{ url_for('view_assignments') }}">Back to Assignments</a>
-

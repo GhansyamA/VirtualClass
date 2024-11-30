@@ -298,7 +298,8 @@ def submit_assignment(assignment_id):
                 file_name=filename,
                 file_path=filepath,
                 student_id=current_user.id,
-                assignment_id=assignment.id
+                assignment_id=assignment.id,
+                submitted_at=datetime.datetime.now()
             )
             db.session.add(submission)
             db.session.commit()

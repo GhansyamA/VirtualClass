@@ -37,10 +37,10 @@ class Submission(db.Model):
     student = db.relationship('User', backref=db.backref('submissions', lazy=True))
     assignment_id = db.Column(db.Integer, db.ForeignKey('assignment.id'), nullable=False)
     assignment = db.relationship('Assignment', backref=db.backref('submissions', lazy=True))
+    submitted_at = db.Column(db.DateTime, default=datetime.datetime.now)
     marks = db.Column(db.Integer, nullable=True)
     def __repr__(self):
         return f'<Submission {self.file_name}>'
-
 
 class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
