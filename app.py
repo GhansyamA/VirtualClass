@@ -277,7 +277,10 @@ def create_assignment():
 @app.route('/view_assignments')
 @login_required
 def view_assignments():
-    assignments = Assignment.query.all()
+    if current_user.role == 'teacher':
+        assignments = Assignment.query.filter_by(teacher_id=current_user.id).all()
+    else:
+        assignments = Assignment.query.all()
     return render_template('view_assignments.html', assignments=assignments)
 
 @app.route('/submit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
