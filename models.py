@@ -61,7 +61,7 @@ class Enrollment(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     student = db.relationship('User', backref='enrollments', lazy=True)
-    course = db.relationship('Course', backref='enrolled_course', lazy=True)  # Updated to match
+    course = db.relationship('Course', backref='enrolled_course', lazy=True)
     def __repr__(self):
         return f'<Enrollment {self.student_id} in {self.course_id}>'
 
@@ -69,7 +69,10 @@ class ActiveMeeting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     room_name = db.Column(db.String(50), nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     started_at = db.Column(db.DateTime, default=datetime.datetime.now())
     teacher = db.relationship('User', backref='active_meetings')
+    course = db.relationship('Course', backref='meetings')
     def __repr__(self):
-        return f'<ActiveMeeting {self.room_name}>'
+        return f'<ActiveMeeting {self.room_name} for Course {self.course_id}>'
+

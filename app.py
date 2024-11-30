@@ -61,7 +61,7 @@ def login():
 @login_required
 def select_course():
     if current_user.role != 'teacher':
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     courses = Course.query.filter_by(teacher_id=current_user.id).all()
     if not courses:
         return redirect(url_for('create_course'))
@@ -75,21 +75,36 @@ def select_course():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    if current_user.role != 'teacher':
-        return redirect(url_for('index'))
-    selected_course_id = session.get('selected_course_id')
-    if not selected_course_id:
-        return redirect(url_for('select_course'))
-    current_course = Course.query.get(selected_course_id)
-    if not current_course or current_course.teacher_id != current_user.id:
-        return redirect(url_for('select_course'))
-    return render_template('dashboard.html', current_course=current_course)
+    if current_user.role == 'teacher':
+        selected_course_id = session.get('selected_course_id')
+        if not selected_course_id:
+            return redirect(url_for('select_course'))
+        current_course = Course.query.get(selected_course_id)
+        if not current_course or current_course.teacher_id != current_user.id:
+            return redirect(url_for('select_course'))
+        return render_template('dashboard.html', current_course=current_course)
+    return render_template('dashboard.html')
 
 @app.route('/start_meeting', methods=['POST'])
 @login_required
 def start_meeting():
+    if current_user.role != 'teacher':
+        flash('Only teachers can start a meeting.', 'danger')
+        return redirect(url_for('dashboard'))
+    selected_course_id = session.get('selected_course_id')
+    if not selected_course_id:
+        flash('No course selected. Please select a course first.', 'danger')
+        return redirect(url_for('select_course'))
+    existing_meeting = ActiveMeeting.query.filter_by(course_id=selected_course_id).first()
+    if existing_meeting:
+        flash('A meeting for this course is already active.', 'danger')
+        return redirect(url_for('dashboard'))
     room_name = generate_room_name()
-    active_meeting = ActiveMeeting(room_name=room_name, teacher_id=current_user.id)
+    active_meeting = ActiveMeeting(
+        room_name=room_name,
+        teacher_id=current_user.id,
+        course_id=selected_course_id
+    )
     db.session.add(active_meeting)
     db.session.commit()
     flash('Meeting started successfully! Share the link with students.', 'success')
@@ -102,9 +117,13 @@ def join_meeting():
     if current_user.role != 'student':
         flash('Only students can join a meeting.', 'danger')
         return redirect(url_for('dashboard'))
-    active_meeting = ActiveMeeting.query.first()
+    selected_course_id = session.get('selected_course_id')
+    if not selected_course_id:
+        flash('No course selected. Please select a course first.', 'danger')
+        return redirect(url_for('select_course'))
+    active_meeting = ActiveMeeting.query.filter_by(course_id=selected_course_id).first()
     if not active_meeting:
-        flash('No active meetings at the moment.', 'danger')
+        flash('No active meeting for the selected course.', 'danger')
         return redirect(url_for('dashboard'))
     jitsi_url = f"https://meet.jit.si/{active_meeting.room_name}"
     return redirect(jitsi_url)
@@ -115,9 +134,13 @@ def stop_meeting():
     if current_user.role != 'teacher':
         flash('Only teachers can stop meetings.', 'danger')
         return redirect(url_for('dashboard'))
-    active_meeting = ActiveMeeting.query.first()
+    selected_course_id = session.get('selected_course_id')
+    if not selected_course_id:
+        flash('No course selected. Please select a course first.', 'danger')
+        return redirect(url_for('select_course'))
+    active_meeting = ActiveMeeting.query.filter_by(course_id=selected_course_id).first()
     if not active_meeting:
-        flash('No active meetings to stop.', 'danger')
+        flash('No active meeting for the selected course.', 'danger')
         return redirect(url_for('dashboard'))
     try:
         db.session.delete(active_meeting)
@@ -276,7 +299,6 @@ def view_notes():
     else:
         notes = Notes.query.all()
     return render_template('view_notes.html', notes=notes)
-
 
 @app.route('/create_assignment', methods=['GET', 'POST'])
 @login_required
