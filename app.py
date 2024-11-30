@@ -75,16 +75,15 @@ def select_course():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    active_meeting = ActiveMeeting.query.first()
-    links = [
-        {'name': 'Notes', 'url': url_for('view_notes')},
-        {'name': 'Assignments', 'url': url_for('view_assignments')}
-    ]
-    if current_user.role == 'student':
-        active_meeting = ActiveMeeting.query.first()
-    else:
-        links.append({'name': 'Courses', 'url': url_for('view_courses')})
-    return render_template('dashboard.html', links=links, active_meeting=active_meeting)
+    if current_user.role != 'teacher':
+        return redirect(url_for('index'))
+    selected_course_id = session.get('selected_course_id')
+    if not selected_course_id:
+        return redirect(url_for('select_course'))
+    current_course = Course.query.get(selected_course_id)
+    if not current_course or current_course.teacher_id != current_user.id:
+        return redirect(url_for('select_course'))
+    return render_template('dashboard.html', current_course=current_course)
 
 @app.route('/start_meeting', methods=['POST'])
 @login_required
