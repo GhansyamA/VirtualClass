@@ -1,0 +1,16 @@
+<h1>Available Courses</h1>
+{% if available_courses %}
+    <form method="POST">
+        <ul>
+            {% for course in available_courses %}
+                <li>
+                    <p>{{ course.name }}</p>
+                    <p>{{ course.description }}</p>
+                    <button type="submit" name="course_id" value="{{ course.id }}" class="btn btn-primary">Enroll</button>
+                </li>
+            {% endfor %}
+        </ul>
+    </form>
+{% else %}
+    <p>No available courses to enroll in.</p>
+{% endif %}

@@ -82,8 +82,12 @@ def dashboard():
         current_course = Course.query.get(selected_course_id)
         if not current_course or current_course.teacher_id != current_user.id:
             return redirect(url_for('select_course'))
-        return render_template('dashboard.html', current_course=current_course)
-    return render_template('dashboard.html')
+        active_meetings = ActiveMeeting.query.filter_by(teacher_id=current_user.id).all()
+        return render_template('dashboard.html', current_course=current_course,active_meetings=active_meetings)
+    else:
+        enrolled_courses = [enrollment.course_id for enrollment in current_user.enrollments]
+        active_meetings = ActiveMeeting.query.filter(ActiveMeeting.course_id.in_(enrolled_courses)).all()
+        return render_template('dashboard.html', active_meetings=active_meetings)
 
 @app.route('/start_meeting', methods=['POST'])
 @login_required
@@ -213,6 +217,25 @@ def delete_course(course_id):
         print(f"Error: {e}")
     return redirect(url_for('view_courses'))
 
+@app.route('/available_courses', methods=['GET', 'POST'])
+@login_required
+def available_courses():
+    if current_user.role != 'student':
+        flash('Only students can enroll in courses.', 'danger')
+        return redirect(url_for('dashboard'))
+    enrolled_course_ids = [enrollment.course_id for enrollment in current_user.enrollments]
+    available_courses = Course.query.filter(Course.id.notin_(enrolled_course_ids)).all()
+    if request.method == 'POST':
+        course_id = request.form.get('course_id')
+        course = Course.query.get(course_id)
+        if course:
+            enrollment = Enrollment(student_id=current_user.id, course_id=course.id)
+            db.session.add(enrollment)
+            db.session.commit()
+            flash(f'You have been enrolled in {course.name}!', 'success')
+            return redirect(url_for('dashboard'))
+    return render_template('available_courses.html', available_courses=available_courses)
+
 @app.route('/view_course/<int:course_id>', methods=['GET'])
 @login_required
 def view_course(course_id):
@@ -297,7 +320,8 @@ def view_notes():
     if current_user.role == 'teacher' and selected_course_id:
         notes = Notes.query.filter_by(teacher_id=current_user.id, course_id=selected_course_id).all()
     else:
-        notes = Notes.query.all()
+        enrolled_courses = [enrollment.course_id for enrollment in current_user.enrollments]
+        notes = Notes.query.filter(Notes.course_id.in_(enrolled_courses)).all()
     return render_template('view_notes.html', notes=notes)
 
 @app.route('/create_assignment', methods=['GET', 'POST'])
@@ -329,7 +353,8 @@ def view_assignments():
     if current_user.role == 'teacher' and selected_course_id:
         assignments = Assignment.query.filter_by(teacher_id=current_user.id, course_id=selected_course_id).all()
     else:
-        assignments = Assignment.query.all()
+        enrolled_courses = [enrollment.course_id for enrollment in current_user.enrollments]
+        assignments = Assignment.query.filter(Assignment.course_id.in_(enrolled_courses)).all()
     return render_template('view_assignments.html', assignments=assignments)
 
 @app.route('/submit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
