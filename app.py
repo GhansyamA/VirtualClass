@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Notes, Assignment, Submission, Course, Enrollment, ActiveMeeting
@@ -53,9 +53,24 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user and check_password_hash(user.password, form.password.data):
             login_user(user)
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('select_course'))
         flash('Invalid username or password', 'danger')
     return render_template('login.html', form=form)
+
+@app.route('/select_course', methods=['GET', 'POST'])
+@login_required
+def select_course():
+    if current_user.role != 'teacher':
+        return redirect(url_for('index'))
+    courses = Course.query.filter_by(teacher_id=current_user.id).all()
+    if not courses:
+        return redirect(url_for('create_course'))
+    if request.method == 'POST':
+        selected_course_id = request.form.get('course_id')
+        if selected_course_id:
+            session['selected_course_id'] = int(selected_course_id)
+            return redirect(url_for('dashboard'))
+    return render_template('select_course.html', courses=courses)
 
 @app.route('/dashboard')
 @login_required
@@ -119,8 +134,7 @@ def stop_meeting():
 @login_required
 def create_course():
     if current_user.role != 'teacher':
-        flash('Only teachers can create courses.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('index'))
     form = CourseForm()
     if form.validate_on_submit():
         course = Course(
@@ -130,8 +144,7 @@ def create_course():
         )
         db.session.add(course)
         db.session.commit()
-        flash('Course created successfully!', 'success')
-        return redirect(url_for('view_courses'))
+        return redirect(url_for('select_course'))
     return render_template('create_course.html', form=form)
 
 @app.route('/view_courses')
@@ -232,53 +245,68 @@ def unenroll_course(course_id):
 @login_required
 def upload_notes():
     if current_user.role != 'teacher':
-        flash('You are not authorized to upload notes.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('index'))
+    selected_course_id = session.get('selected_course_id')
+    if not selected_course_id:
+        return redirect(url_for('select_course'))
     form = NoteUploadForm()
     if form.validate_on_submit():
         file = form.file.data
-        if file and allowed_file(file.filename):
+        if file:
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['NOTES_UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            new_note = Notes(filename=filename, file_path=filepath, teacher_id=current_user.id)
-            db.session.add(new_note)
+            file_path = os.path.join(app.config['NOTES_UPLOAD_FOLDER'], filename)
+            file.save(file_path)
+            note = Notes(
+                filename=filename,
+                file_path=file_path,
+                uploaded_at=datetime.datetime.now(),
+                teacher_id=current_user.id,
+                course_id=selected_course_id
+            )
+            db.session.add(note)
             db.session.commit()
-            flash('Notes uploaded successfully!', 'success')
             return redirect(url_for('view_notes'))
     return render_template('upload_notes.html', form=form)
 
 @app.route('/view_notes')
 @login_required
 def view_notes():
-    notes = Notes.query.all()
+    selected_course_id = session.get('selected_course_id')
+    if current_user.role == 'teacher' and selected_course_id:
+        notes = Notes.query.filter_by(teacher_id=current_user.id, course_id=selected_course_id).all()
+    else:
+        notes = Notes.query.all()
     return render_template('view_notes.html', notes=notes)
+
 
 @app.route('/create_assignment', methods=['GET', 'POST'])
 @login_required
 def create_assignment():
     if current_user.role != 'teacher':
-        flash('Only teachers can create assignments.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('index'))
+    selected_course_id = session.get('selected_course_id')
+    if not selected_course_id:
+        return redirect(url_for('select_course'))
     form = AssignmentCreationForm()
     if form.validate_on_submit():
         assignment = Assignment(
             title=form.title.data,
             description=form.description.data,
             due_date=form.due_date.data,
-            teacher_id=current_user.id
+            teacher_id=current_user.id,
+            course_id=selected_course_id
         )
         db.session.add(assignment)
         db.session.commit()
-        flash('Assignment created successfully!', 'success')
         return redirect(url_for('view_assignments'))
     return render_template('create_assignment.html', form=form)
 
 @app.route('/view_assignments')
 @login_required
 def view_assignments():
-    if current_user.role == 'teacher':
-        assignments = Assignment.query.filter_by(teacher_id=current_user.id).all()
+    selected_course_id = session.get('selected_course_id')
+    if current_user.role == 'teacher' and selected_course_id:
+        assignments = Assignment.query.filter_by(teacher_id=current_user.id, course_id=selected_course_id).all()
     else:
         assignments = Assignment.query.all()
     return render_template('view_assignments.html', assignments=assignments)

@@ -15,7 +15,9 @@ class Notes(db.Model):
     file_path = db.Column(db.String(500), nullable=False)
     uploaded_at = db.Column(db.DateTime, default=datetime.datetime.now())
     teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)  # Link to course
     teacher = db.relationship('User', backref=db.backref('notes', lazy=True))
+    course = db.relationship('Course', backref=db.backref('notes', lazy=True))
     def __repr__(self):
         return f'<Notes {self.filename}>'
 
@@ -25,7 +27,9 @@ class Assignment(db.Model):
     description = db.Column(db.Text, nullable=False)
     due_date = db.Column(db.DateTime, nullable=False)
     teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)  # Link to course
     teacher = db.relationship('User', backref=db.backref('assignments', lazy=True))
+    course = db.relationship('Course', backref=db.backref('assignments', lazy=True))
     def __repr__(self):
         return f'<Assignment {self.title}>'
 

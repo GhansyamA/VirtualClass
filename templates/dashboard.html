@@ -108,6 +108,10 @@
         <p>Welcome, {{current_user.username}}</p>
         <ul>
             <li>
+                <i class="fas fa-exchange-alt"></i>
+                <a href="{{ url_for('select_course') }}" > Change Course </a>
+            </li>
+            <li>
                 <i class="fas fa-sticky-note"></i>
                 <a href="{{ url_for('view_notes') }}"> Notes </a>
             </li>
@@ -118,7 +122,7 @@
             {% if current_user.role == 'teacher' %}
                 <li>
                     <i class="fas fa-chalkboard-teacher"></i>
-                    <a href="{{ url_for('view_courses') }}"> Courses </a>
+                    <a href="{{ url_for('view_courses') }}"> My Courses </a>
                 </li>
             {% endif %}
         </ul>

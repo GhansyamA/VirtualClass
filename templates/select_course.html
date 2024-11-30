@@ -1,0 +1,17 @@
+<h1>Select a Course</h1>
+
+{% if courses %}
+    <form method="post">
+        <label for="course_id">Choose a course:</label>
+        <select name="course_id" id="course_id" required>
+            {% for course in courses %}
+                <option value="{{ course.id }}">{{ course.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Select</button>
+        <p><a href="{{ url_for('create_course') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Create new course</a></p>
+    </form>
+{% else %}
+    <p>No courses available. Create one to continue.</p>
+    <a href="{{ url_for('create_course') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Create Course</a>
+{% endif %}
