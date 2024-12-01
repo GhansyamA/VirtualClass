@@ -97,10 +97,17 @@ def dashboard():
         active_meetings = response.data if response else []
         return render_template('dashboard.html', current_course=current_course, active_meetings=active_meetings)
     else:
-        enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
-        response = supabase.table('active_meeting').select('*').in_('course_id', enrolled_courses).execute()
+        response = supabase.table('enrollment').select('course_id').eq('student_id', current_user.id).execute()
+        if response and response.data:
+            enrolled_courses_ids = [enrollment['course_id'] for enrollment in response.data]
+            courses_response = supabase.table('course').select('*').in_('id', enrolled_courses_ids).execute()
+            enrolled_courses = courses_response.data if courses_response else []
+        else:
+            enrolled_courses = []
+        enrolled_courses_ids = [course['id'] for course in enrolled_courses]
+        response = supabase.table('active_meeting').select('*').in_('course_id', enrolled_courses_ids).execute()
         active_meetings = response.data if response else []
-        return render_template('dashboard.html', active_meetings=active_meetings)
+        return render_template('dashboard.html', enrolled_courses=enrolled_courses, active_meetings=active_meetings)
 
 @app.route('/start_meeting', methods=['POST'])
 @login_required
@@ -264,20 +271,24 @@ def available_courses():
     for course_id in enrolled_courses:
         query = query.not_('id', course_id)
     response = query.execute()
-    if response:
-        available_courses = response.json()
+    if response and response.data:
+        available_courses = response.data
         if request.method == 'POST':
             course_id = request.form.get('course_id')
-            enrollment = {
-                'student_id': current_user.id,
-                'course_id': course_id
-            }
-            enroll_response = supabase.table('enrollments').insert([enrollment]).execute()
-            if enroll_response:
-                flash(f'You have been enrolled in the course!', 'success')
-                return redirect(url_for('dashboard'))
+            if course_id:
+                enrollment = {
+                    'student_id': current_user.id,
+                    'course_id': course_id
+                }
+                enroll_response = supabase.table('enrollment').insert([enrollment]).execute()
+                if enroll_response:
+                    flash(f'You have been enrolled in the course!', 'success')
+                    return redirect(url_for('dashboard'))
+                else:
+                    flash(f"Error enrolling in the course: {enroll_response.json()}", 'danger')
         return render_template('available_courses.html', available_courses=available_courses)
     else:
+        flash('No available courses to enroll in.', 'danger')
         return redirect(url_for('dashboard'))
 
 @app.route('/view_course/<int:course_id>')
@@ -331,11 +342,11 @@ def unenroll(course_id):
     if current_user.role != 'student':
         flash('Only students can unenroll from courses.', 'danger')
         return redirect(url_for('dashboard'))
-    response = supabase.table('enrollments').select('*').eq('student_id', current_user.id).eq('course_id', course_id).execute()
-    if response.status_code == 200 and len(response.json()) > 0:
-        enrollment = response.json()[0]
-        delete_response = supabase.table('enrollments').delete().eq('id', enrollment['id']).execute()
-        if delete_response.status_code == 200:
+    response = supabase.table('enrollment').select('*').eq('student_id', current_user.id).eq('course_id', course_id).execute()
+    if response and response.data:
+        enrollment = response.data[0]
+        delete_response = supabase.table('enrollment').delete().eq('id', enrollment['id']).execute()
+        if delete_response:
             flash('You have successfully unenrolled from the course.', 'success')
         else:
             flash('Error unenrolling from the course. Please try again later.', 'danger')
