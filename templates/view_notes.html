@@ -85,26 +85,27 @@
 <body>
     <div class="container">
         <h1>Notes</h1>
-        {% if current_user.role == 'teacher' %}
-            <a href="{{ url_for('upload_notes') }}" class="upload-btn"><i class="fas fa-upload"></i> Upload Notes</a>
-        {% endif %}
-        {% if notes %}
-            <ul>
-                {% for note in notes %}
-                    <li>
-                        <div>
-                            <i class="fas fa-file-alt icon"></i>
-                            <a href="{{ url_for('static', filename='notes/' + note.filename) }}" target="_blank">{{ note.filename }}</a>
-                            <div class="note-meta">
-                                Uploaded by: {{ note.teacher.username }} on {{ note.uploaded_at.strftime('%Y-%m-%d') }}
-                            </div>
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="no-notes">No notes uploaded yet.</p>
-        {% endif %}
+{% if current_user.role == 'teacher' %}
+    <a href="{{ url_for('upload_notes') }}" class="upload-btn"><i class="fas fa-upload"></i> Upload Notes</a>
+{% endif %}
+{% if notes %}
+    <ul>
+        {% for note in notes %}
+            <li>
+                <div>
+                    <i class="fas fa-file-alt icon"></i>
+                    <a href="{{ note.filename }}" target="_blank">{{ note.filename }}</a>
+                    <div class="note-meta">
+                        Uploaded by: {{ note.teacher_username }} on {{ note.uploaded_at }}
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="no-notes">No notes uploaded yet.</p>
+{% endif %}
+
     </div>
 </body>
 </html>

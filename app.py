@@ -341,17 +341,14 @@ def upload_notes():
         file = form.file.data
         if file:
             filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['NOTES_UPLOAD_FOLDER'], filename)
-            file.save(file_path)
             note_data = {
                 'filename': filename,
-                'file_path': file_path,
                 'uploaded_at': datetime.datetime.now().isoformat(),
                 'teacher_id': current_user.id,
                 'course_id': selected_course_id
             }
             response = supabase.table('notes').insert([note_data]).execute()
-            if response.status_code == 201:
+            if response:
                 return redirect(url_for('view_notes'))
             else:
                 flash(f"Error: {response.json()}", 'danger')
@@ -367,7 +364,7 @@ def view_notes():
         enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
         response = supabase.table('notes').select('*').in_('course_id', enrolled_courses).execute()
     if response:
-        notes = response.json()
+        notes = response.data or []
         return render_template('view_notes.html', notes=notes)
     else:
         flash(f"Error fetching notes: {response.json()}", 'danger')

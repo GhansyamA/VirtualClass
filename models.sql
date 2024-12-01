@@ -31,7 +31,6 @@ CREATE TABLE assignment (
 CREATE TABLE notes (
     id SERIAL PRIMARY KEY,
     filename VARCHAR(150) NOT NULL,
-    file_path VARCHAR(500) NOT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     teacher_id INTEGER NOT NULL,
     course_id INTEGER NOT NULL,
@@ -40,7 +39,7 @@ CREATE TABLE notes (
 );
 
 -- Create ActiveMeeting table
-CREATE TABLE active_meeting (
+CREATE TABLE public.active_meeting (
     id SERIAL PRIMARY KEY,
     room_name VARCHAR(50) NOT NULL,
     teacher_id INTEGER NOT NULL,
@@ -54,7 +53,6 @@ CREATE TABLE active_meeting (
 CREATE TABLE submission (
     id SERIAL PRIMARY KEY,
     file_name VARCHAR(150) NOT NULL,
-    file_path VARCHAR(500) NOT NULL,
     student_id INTEGER NOT NULL,
     assignment_id INTEGER NOT NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -71,3 +69,6 @@ CREATE TABLE enrollment (
     FOREIGN KEY (student_id) REFERENCES "user"(id),
     FOREIGN KEY (course_id) REFERENCES course(id)
 );
+
+ALTER TABLE "user" ALTER COLUMN username TYPE VARCHAR(255);
+ALTER TABLE "user" ALTER COLUMN password TYPE VARCHAR(255);
