@@ -146,39 +146,39 @@
             <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Enroll in More Courses</a>
         {% endif %}
         <div class="section">
-        {% if current_user.role == 'student' %}
+            {% if current_user.role == 'student' %}
             <h2>Active Meetings for Your Enrolled Courses</h2>
             {% if active_meetings %}
                 <ul>
                 {% for meeting in active_meetings %}
-                <li>
-                    <p>Room Name: {{ meeting.room_name }}</p>
-                    <a href="https://meet.jit.si/{{ meeting.room_name }}" target="_blank">Join Meeting</a>
-                </li>
+                    <li>
+                        <p>Room Name: {{ meeting.room_name }}</p>
+                        <a href="https://meet.jit.si/{{ meeting.room_name }}" target="_blank">Join Meeting</a>
+                    </li>
                 {% endfor %}
-            </ul>
+                </ul>
             {% else %}
                 <p>No active meetings for your courses.</p>
             {% endif %}
         {% else %}
             {% if active_meetings %}
                 <div class="active-meeting">
-                <ul>
+                    <ul>
                     {% for meeting in active_meetings %}
-                    <li>
-                    <p>Room Name: {{ current_course.meetings[0].room_name }}</p>
-                    <a href="https://meet.jit.si/{{ current_course.meetings[0].room_name }}" target="_blank" class="btn btn-success">Join Meeting</a>
-                    <a href="{{ url_for('stop_meeting') }}" class="btn btn-danger">Stop Meeting</a>
-                    </li>
+                        <li>
+                            <p>Room Name: {{ meeting.room_name }}</p>
+                            <a href="https://meet.jit.si/{{ meeting.room_name }}" target="_blank" class="btn btn-success">Join Meeting</a>
+                            <a href="{{ url_for('stop_meeting') }}" class="btn btn-danger">Stop Meeting</a>
+                        </li>
                     {% endfor %}
-                </ul>
+                    </ul>
                 </div>
             {% else %}
                 <form method="POST" action="{{ url_for('start_meeting') }}">
                     <button type="submit" class="btn btn-primary">Start Meeting</button>
                 </form>
             {% endif %}
-        {% endif %}
+        {% endif %}        
         </div>
         <div class="logout">
             <a href="{{ url_for('logout') }}">Log Out</a>

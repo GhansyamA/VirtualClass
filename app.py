@@ -93,15 +93,15 @@ def dashboard():
         current_course = response.data[0] if response else None
         if not current_course or current_course['teacher_id'] != current_user.id:
             return redirect(url_for('select_course'))
-        response = supabase.table('active_meetings').select('*').eq('teacher_id', current_user.id).execute()
+        response = supabase.table('active_meeting').select('*').eq('teacher_id', current_user.id).execute()
         active_meetings = response.data if response else []
         return render_template('dashboard.html', current_course=current_course, active_meetings=active_meetings)
     else:
         enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
-        response = supabase.table('active_meetings').select('*').in_('course_id', enrolled_courses).execute()
+        response = supabase.table('active_meeting').select('*').in_('course_id', enrolled_courses).execute()
         active_meetings = response.data if response else []
         return render_template('dashboard.html', active_meetings=active_meetings)
-    
+
 @app.route('/start_meeting', methods=['POST'])
 @login_required
 def start_meeting():
@@ -112,17 +112,17 @@ def start_meeting():
     if not selected_course_id:
         flash('No course selected. Please select a course first.', 'danger')
         return redirect(url_for('select_course'))
-    response = supabase.table('active_meetings').select('*').eq('course_id', selected_course_id).execute()
-    if response.status_code == 200 and response.data:
+    response = supabase.table('active_meeting').select('*').eq('course_id', selected_course_id).execute()
+    if response and response.data:
         flash('A meeting for this course is already active.', 'danger')
         return redirect(url_for('dashboard'))
     room_name = generate_room_name()
-    response = supabase.table('active_meetings').insert([{
+    response = supabase.table('active_meeting').insert([{
         'room_name': room_name,
         'teacher_id': current_user.id,
         'course_id': selected_course_id
     }]).execute()
-    if response.status_code == 201:
+    if response:
         flash('Meeting started successfully! Share the link with students.', 'success')
         jitsi_url = f"https://meet.jit.si/{room_name}"
         return render_template('start_meeting.html', jitsi_url=jitsi_url)
@@ -139,8 +139,8 @@ def join_meeting():
     if not selected_course_id:
         flash('No course selected. Please select a course first.', 'danger')
         return redirect(url_for('select_course'))
-    response = supabase.table('active_meetings').select('*').eq('course_id', selected_course_id).execute()
-    if response.status_code == 200 and response.data:
+    response = supabase.table('active_meeting').select('*').eq('course_id', selected_course_id).execute()
+    if response and response.data:
         active_meeting = response.data[0]
         jitsi_url = f"https://meet.jit.si/{active_meeting['room_name']}"
         return redirect(jitsi_url)
@@ -157,11 +157,11 @@ def stop_meeting():
     if not selected_course_id:
         flash('No course selected. Please select a course first.', 'danger')
         return redirect(url_for('select_course'))
-    response = supabase.table('active_meetings').select('*').eq('course_id', selected_course_id).execute()
-    if response.status_code == 200 and response.data:
+    response = supabase.table('active_meeting').select('*').eq('course_id', selected_course_id).execute()
+    if response and response.data:
         active_meeting = response.data[0]
-        response = supabase.table('active_meetings').delete().eq('id', active_meeting['id']).execute()
-        if response.status_code == 200:
+        response = supabase.table('active_meeting').delete().eq('id', active_meeting['id']).execute()
+        if response:
             flash('Meeting stopped successfully. You can now start a new meeting.', 'success')
             return redirect(url_for('dashboard'))
     flash('Error stopping the meeting. Please try again later.', 'danger')
