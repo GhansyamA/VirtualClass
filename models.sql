@@ -72,3 +72,13 @@ CREATE TABLE enrollment (
 
 ALTER TABLE "user" ALTER COLUMN username TYPE VARCHAR(255);
 ALTER TABLE "user" ALTER COLUMN password TYPE VARCHAR(255);
+
+-- Drop the existing foreign key constraint
+ALTER TABLE notes DROP CONSTRAINT notes_course_id_fkey;
+
+-- Add a new foreign key constraint with ON DELETE CASCADE behavior
+ALTER TABLE notes
+ADD CONSTRAINT notes_course_id_fkey
+FOREIGN KEY (course_id)
+REFERENCES course(id)
+ON DELETE CASCADE;

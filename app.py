@@ -193,19 +193,22 @@ def view_courses():
         response = supabase.table('course').select('*').eq('teacher_id', current_user.id).execute()
     elif current_user.role == 'student':
         response = supabase.table('course').select('*').execute()
+    else:
+        flash('Invalid role.', 'danger')
+        return redirect(url_for('dashboard'))
     if response:
-        courses = response.json()
+        courses = response.data
         return render_template('view_courses.html', courses=courses)
     else:
-        flash(f"Error: {response.json()}", 'danger')
+        flash(f"Error fetching courses: {response.json()}", 'danger')
         return redirect(url_for('dashboard'))
 
 @app.route('/edit_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def edit_course(course_id):
-    response = supabase.table('courses').select('*').eq('id', course_id).execute()
-    if response.status_code == 200 and len(response.json()) == 1:
-        course = response.json()[0]
+    response = supabase.table('course').select('*').eq('id', course_id).execute()
+    if response and response.data:
+        course = response.data[0]
         if course['teacher_id'] != current_user.id:
             flash('You do not have permission to edit this course.', 'danger')
             return redirect(url_for('view_courses'))
@@ -215,12 +218,12 @@ def edit_course(course_id):
                 'name': form.name.data,
                 'description': form.description.data
             }
-            response = supabase.table('courses').update(updated_data).eq('id', course_id).execute()
-            if response.status_code == 200:
+            update_response = supabase.table('course').update(updated_data).eq('id', course_id).execute()
+            if update_response:
                 flash('Course updated successfully!', 'success')
                 return redirect(url_for('view_course', course_id=course_id))
             else:
-                flash(f"Error: {response.json()}", 'danger')
+                flash(f"Error updating course: {update_response.json()}", 'danger')
         form.name.data = course['name']
         form.description.data = course['description']
         return render_template('create_course.html', form=form)
@@ -231,21 +234,23 @@ def edit_course(course_id):
 @app.route('/delete_course/<int:course_id>', methods=['GET'])
 @login_required
 def delete_course(course_id):
-    response = supabase.table('courses').select('*').eq('id', course_id).execute()
-    if response.status_code == 200 and len(response.json()) == 1:
-        course = response.json()[0]
+    response = supabase.table('course').select('*').eq('id', course_id).execute()
+    if response and response.data:
+        course = response.data[0]
         if course['teacher_id'] != current_user.id:
             flash('You do not have permission to delete this course.', 'danger')
             return redirect(url_for('view_courses'))
         try:
-            response = supabase.table('courses').delete().eq('id', course_id).execute()
-            if response.status_code == 200:
+            delete_response = supabase.table('course').delete().eq('id', course_id).execute()
+            if delete_response.status_code == 200:
                 flash('Course deleted successfully!', 'success')
             else:
-                flash(f"Error deleting course: {response.json()}", 'danger')
+                flash(f"Error deleting course: {delete_response.json()}", 'danger')
         except Exception as e:
-            flash('Error deleting course. Please try again later.', 'danger')
+            flash('An error occurred while deleting the course. Please try again later.', 'danger')
             print(f"Error: {e}")
+    else:
+        flash('Course not found.', 'danger')
     return redirect(url_for('view_courses'))
 
 @app.route('/available_courses', methods=['GET', 'POST'])
@@ -275,19 +280,29 @@ def available_courses():
     else:
         return redirect(url_for('dashboard'))
 
-@app.route('/view_course/<int:course_id>', methods=['GET'])
+@app.route('/view_course/<int:course_id>')
 @login_required
 def view_course(course_id):
-    response = supabase.table('courses').select('*').eq('id', course_id).execute()
-    if response.status_code == 200 and len(response.json()) == 1:
-        course = response.json()[0]
-        enrolled_students = supabase.table('enrollments').select('student_id').eq('course_id', course_id).execute().json()
-        student_ids = [student['student_id'] for student in enrolled_students]
-        enrolled_students_details = supabase.table('users').select('*').in_('id', student_ids).execute().json()
-        return render_template('view_course.html', course=course, enrolled_students=enrolled_students_details)
+    course_response = supabase.table('course').select('*').eq('id', course_id).execute()
+    if course_response and course_response.data:
+        course = course_response.data[0]
     else:
-        flash('Course not found.', 'danger')
+        flash("Course not found.", "danger")
         return redirect(url_for('view_courses'))
+    enrollment_response = supabase.table('enrollment').select('student_id').eq('course_id', course_id).execute()
+    if enrollment_response:
+        enrolled_students = enrollment_response.data
+        student_ids = [student['student_id'] for student in enrolled_students]
+        student_response = supabase.table('user').select('*').in_('id', student_ids).execute()
+        if student_response:
+            enrolled_students_details = student_response.data
+        else:
+            flash("Error fetching student details.", "danger")
+            enrolled_students_details = []
+    else:
+        flash("Error fetching enrollments.", "danger")
+        enrolled_students_details = []
+    return render_template('view_course.html', course=course, enrolled_students=enrolled_students_details)
 
 @app.route('/enroll_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
@@ -388,8 +403,8 @@ def create_assignment():
             'teacher_id': current_user.id,
             'course_id': selected_course_id
         }
-        response = supabase.table('assignments').insert([assignment_data]).execute()
-        if response.status_code == 201:
+        response = supabase.table('assignment').insert([assignment_data]).execute()
+        if response:
             return redirect(url_for('view_assignments'))
         else:
             flash(f"Error: {response.json()}", 'danger')
@@ -405,12 +420,18 @@ def view_assignments():
         enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
         response = supabase.table('assignment').select('*').in_('course_id', enrolled_courses).execute()
     if response:
-        assignments = response.json()
+        assignments = response.data
         for assignment in assignments:
-            if isinstance(assignment['due_date'], str):  # Check if due_date is a string
-                assignment['formatted_due_date'] = datetime.datetime.strptime(assignment['due_date'], '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                assignment['formatted_due_date'] = assignment['due_date'].strftime('%Y-%m-%d %H:%M:%S')
+            due_date = assignment.get('due_date')
+            if due_date:
+                try:
+                    if isinstance(due_date, str):
+                        assignment['formatted_due_date'] = datetime.datetime.strptime(due_date, '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
+                    else:
+                        assignment['formatted_due_date'] = due_date.strftime('%Y-%m-%d %H:%M:%S')
+                except Exception as e:
+                    print(f"Error parsing date: {e}")
+                    assignment['formatted_due_date'] = "Invalid date"
         return render_template('view_assignments.html', assignments=assignments)
     else:
         flash(f"Error fetching assignments: {response.json()}", 'danger')
@@ -448,20 +469,27 @@ def submit_assignment(assignment_id):
 @app.route('/view_submissions/<int:assignment_id>', methods=['GET', 'POST'])
 @login_required
 def view_submissions(assignment_id):
-    assignment = supabase.table('assignments').select('*').eq('id', assignment_id).execute().json()
-    if assignment and assignment[0]['teacher_id'] != current_user.id:
-        flash('You do not have permission to view these submissions.', 'danger')
+    response = supabase.table('assignment').select('*').eq('id', assignment_id).execute()
+    if response and response.data:
+        assignment = response.data[0]
+        if assignment['teacher_id'] != current_user.id:
+            flash('You do not have permission to view these submissions.', 'danger')
+            return redirect(url_for('dashboard'))
+    else:
+        flash(f"Error fetching assignment: {response.json()}", 'danger')
         return redirect(url_for('dashboard'))
-    submissions = supabase.table('submissions').select('*').eq('assignment_id', assignment_id).execute().json()
+    response = supabase.table('submission').select('*').eq('assignment_id', assignment_id).execute()
+    if response and response.data:
+        submissions = response.data
+    else:
+        submissions = []
+        flash(f"Error fetching submissions: {response.json()}", 'danger')
     if request.method == 'POST':
         for submission in submissions:
             marks_key = f"marks_{submission['id']}"
             marks = request.form.get(marks_key)
             if marks:
-                response = supabase.table('submissions').update({'marks': marks}).eq('id', submission['id']).execute()
-                if response.status_code != 200:
-                    flash(f"Error: {response.json()}", 'danger')
-        db.session.commit()
+                response = supabase.table('submission').update({'marks': marks}).eq('id', submission['id']).execute()
         flash('Marks updated successfully!', 'success')
     return render_template('view_submissions.html', assignment=assignment, submissions=submissions)
 
