@@ -27,6 +27,7 @@ CREATE TABLE assignment (
 CREATE TABLE notes (
     id SERIAL PRIMARY KEY,
     filename VARCHAR(150) NOT NULL,
+    file_url VARCHAR(255) NOT NULL,  -- Added file URL for Supabase storage
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     teacher_id INTEGER NOT NULL,
     course_id INTEGER NOT NULL,
@@ -47,6 +48,7 @@ CREATE TABLE public.active_meeting (
 CREATE TABLE submission (
     id SERIAL PRIMARY KEY,
     file_name VARCHAR(150) NOT NULL,
+    file_url VARCHAR(255) NOT NULL,  -- Added file URL for Supabase storage
     student_id INTEGER NOT NULL,
     assignment_id INTEGER NOT NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

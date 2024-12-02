@@ -12,6 +12,13 @@ SUPABASE_URL = "https://zplmaprxfpfzmlaywyno.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbG1hcHJ4ZnBmem1sYXl3eW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5ODc0MTEsImV4cCI6MjA0ODU2MzQxMX0.YhLr03RloOoibQXS_ZDSL_LBHRdfDrFXK85c32AV9bk"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+def upload_to_supabase_storage(file, filename):
+    storage = supabase.storage
+    file_path = f"VirtualClassBucket/{filename}"
+    storage.from_("VirtualClassBucket").upload(file_path, file)
+    file_url = storage.from_("VirtualClassBucket").get_public_url(file_path)
+    return file_url
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -368,8 +375,10 @@ def upload_notes():
         file = form.file.data
         if file:
             filename = secure_filename(file.filename)
+            file_url = upload_to_supabase_storage(file, filename)
             note_data = {
                 'filename': filename,
+                'file_url': file_url,
                 'uploaded_at': datetime.datetime.now().isoformat(),
                 'teacher_id': current_user.id,
                 'course_id': selected_course_id
@@ -469,12 +478,10 @@ def submit_assignment(assignment_id):
         file = form.file.data
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            upload_folder = current_app.config.get('SUBMISSIONS_UPLOAD_FOLDER', './static/submissions')
-            os.makedirs(upload_folder, exist_ok=True)
-            filepath = os.path.join(upload_folder, filename)
-            file.save(filepath)
+            file_url = upload_to_supabase_storage(file, filename)
             submission = {
                 'file_name': filename,
+                'file_url': file_url,
                 'student_id': current_user.id,
                 'assignment_id': assignment_id,
                 'submitted_at': datetime.datetime.now().isoformat(),

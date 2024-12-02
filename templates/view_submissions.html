@@ -1,4 +1,4 @@
-  <h2>Submissions for Assignment: {{ assignment.title }}</h2>
+<h2>Submissions for Assignment: {{ assignment.title }}</h2>
   <p><strong>Description:</strong> {{ assignment.description }}</p>
   <p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
   <form method="POST">
@@ -16,7 +16,7 @@
           <tr>
             <td>{{ submission.student.username }}</td>
             <td>
-              <a href="{{ url_for('static', filename='submissions/' + submission.file_name) }}" target="_blank">
+              <a href="{{ submission.file_url }}" target="_blank">
                 {{ submission.file_name }}
               </a>
             </td>
