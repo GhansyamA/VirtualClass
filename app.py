@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, session
+from flask import Flask, render_template, redirect, url_for, flash, request, session, current_app
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Assignment
@@ -459,27 +459,34 @@ def submit_assignment(assignment_id):
     if current_user.role != 'student':
         flash('Only students can submit assignments.', 'danger')
         return redirect(url_for('dashboard'))
-    assignment = Assignment.query.get_or_404(assignment_id)
+    response = supabase.table('assignment').select('*').eq('id', assignment_id).execute()
+    assignment = response.data[0] if response and response.data else None
+    if not assignment:
+        flash('Assignment not found.', 'danger')
+        return redirect(url_for('view_assignments'))
     form = AssignmentSubmissionForm()
     if form.validate_on_submit():
         file = form.file.data
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['SUBMISSIONS_UPLOAD_FOLDER'], filename)
+            upload_folder = current_app.config.get('SUBMISSIONS_UPLOAD_FOLDER', './static/submissions')
+            os.makedirs(upload_folder, exist_ok=True)
+            filepath = os.path.join(upload_folder, filename)
             file.save(filepath)
             submission = {
                 'file_name': filename,
-                'file_path': filepath,
                 'student_id': current_user.id,
-                'assignment_id': assignment.id,
-                'submitted_at': datetime.datetime.now().isoformat()
+                'assignment_id': assignment_id,
+                'submitted_at': datetime.datetime.now().isoformat(),
             }
-            response = supabase.table('submissions').insert([submission]).execute()
+            response = supabase.table('submission').insert([submission]).execute()
             if response:
                 flash('Assignment submitted successfully!', 'success')
                 return redirect(url_for('view_assignments'))
             else:
-                flash(f"Error: {response.json()}", 'danger')
+                flash(f"Error submitting assignment: {response.json()}", 'danger')
+        else:
+            flash('Invalid file type. Please upload a valid file.', 'danger')
     return render_template('submit_assignment.html', form=form, assignment=assignment)
 
 @app.route('/view_submissions/<int:assignment_id>', methods=['GET', 'POST'])

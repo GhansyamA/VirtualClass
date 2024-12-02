@@ -70,22 +70,21 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Submit Assignment: {{ assignment.title }}</h1>
-        <form method="POST" enctype="multipart/form-data">
-            {{ form.hidden_tag() }}
-            <div class="form-group">
-                <label for="file">{{ form.file.label }}</label>
-                {{ form.file(class="form-control") }}
-            </div>
-            <button type="submit" class="btn-submit">
-                <i class="fas fa-upload"></i> Submit Assignment
-            </button>
-        </form>
-
-        <div class="back-link">
-            <a href="{{ url_for('view_assignments') }}"><i class="fas fa-arrow-left"></i> Back to Assignments</a>
+    <h1>Submit Assignment: {{ assignment.title }}</h1>
+    <p><strong>Description:</strong> {{ assignment.description }}</p>
+    <p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <label for="file">{{ form.file.label }}</label>
+            {{ form.file(class="form-control") }}
         </div>
+        <button type="submit" class="btn-submit">
+            <i class="fas fa-upload"></i> Submit Assignment
+        </button>
+    </form>
+    <div class="back-link">
+        <a href="{{ url_for('view_assignments') }}"><i class="fas fa-arrow-left"></i> Back to Assignments</a>
     </div>
 </body>
 </html>

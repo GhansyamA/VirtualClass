@@ -56,7 +56,7 @@ CREATE TABLE submission (
     student_id INTEGER NOT NULL,
     assignment_id INTEGER NOT NULL,
     submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    marks INTEGER,
+    marks INTEGER DEFAULT NULL,
     FOREIGN KEY (student_id) REFERENCES "user"(id),
     FOREIGN KEY (assignment_id) REFERENCES assignment(id)
 );
