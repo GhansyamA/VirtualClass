@@ -94,9 +94,9 @@
             <li>
                 <div>
                     <i class="fas fa-file-alt icon"></i>
-                    <a href="{{ note.filename }}" target="_blank">{{ note.filename }}</a>
+                    <a href="{{ url_for('static', filename='notes/' + note.filename) }}" target="_blank">{{ note.filename }}</a>
                     <div class="note-meta">
-                        Uploaded by: {{ note.teacher_username }} on {{ note.uploaded_at }}
+                        Uploaded by: {{ note.teacher_id }} on {{ note.uploaded_at }}
                     </div>
                 </div>
             </li>

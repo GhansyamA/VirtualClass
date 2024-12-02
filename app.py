@@ -383,17 +383,23 @@ def upload_notes():
 @app.route('/view_notes')
 @login_required
 def view_notes():
-    selected_course_id = session.get('selected_course_id')
-    if current_user.role == 'teacher' and selected_course_id:
+    if current_user.role == 'teacher':
+        selected_course_id = session.get('selected_course_id')
+        if not selected_course_id:
+            flash('No course selected. Please select a course to view notes.', 'danger')
+            return redirect(url_for('dashboard'))
         response = supabase.table('notes').select('*').eq('teacher_id', current_user.id).eq('course_id', selected_course_id).execute()
     else:
-        enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
+        enrolled_courses = [enrollment['course_id'] for enrollment in supabase.table('enrollment').select('*').eq('student_id', current_user.id).execute().data]
+        if not enrolled_courses:
+            flash('You are not enrolled in any courses.', 'danger')
+            return redirect(url_for('dashboard'))
         response = supabase.table('notes').select('*').in_('course_id', enrolled_courses).execute()
-    if response:
-        notes = response.data or []
+    if response and response.data:
+        notes = response.data
         return render_template('view_notes.html', notes=notes)
     else:
-        flash(f"Error fetching notes: {response.json()}", 'danger')
+        flash('No notes found for the selected courses or an error occurred.', 'danger')
         return redirect(url_for('dashboard'))
 
 @app.route('/create_assignment', methods=['GET', 'POST'])

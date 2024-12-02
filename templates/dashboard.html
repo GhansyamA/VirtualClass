@@ -143,11 +143,11 @@
             </li>
         {% endfor %}
     </ul>
-    <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Enroll in More Courses</a>
+    <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Explore Courses</a>
 {% endif %}
         <div class="section">
             {% if current_user.role == 'student' %}
-            <h2>Active Meetings for Your Enrolled Courses</h2>
+            <h2>Active Meeting</h2>
             {% if active_meetings %}
                 <ul>
                 {% for meeting in active_meetings %}
