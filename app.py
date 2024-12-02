@@ -390,6 +390,8 @@ def view_notes():
             flash('No course selected. Please select a course to view notes.', 'danger')
             return redirect(url_for('dashboard'))
         response = supabase.table('notes').select('*').eq('teacher_id', current_user.id).eq('course_id', selected_course_id).execute()
+        notes = response.data
+        return render_template('view_notes.html', notes=notes)
     else:
         enrolled_courses = [enrollment['course_id'] for enrollment in supabase.table('enrollment').select('*').eq('student_id', current_user.id).execute().data]
         response = supabase.table('notes').select('*').in_('course_id', enrolled_courses).execute()
@@ -427,6 +429,7 @@ def create_assignment():
 @app.route('/view_assignments')
 @login_required
 def view_assignments():
+    flag=1
     if current_user.role == 'teacher':
         selected_course_id = session.get('selected_course_id')
         if not selected_course_id:
@@ -436,6 +439,8 @@ def view_assignments():
     else:
         enrolled_courses = [enrollment['course_id'] for enrollment in supabase.table('enrollment').select('course_id').eq('student_id', current_user.id).execute().data] 
         response = supabase.table('assignment').select('*').in_('course_id', enrolled_courses).execute()
+        if not enrolled_courses:
+            flag=0
     assignments = response.data
     for assignment in assignments:
         due_date = assignment.get('due_date')
@@ -446,9 +451,6 @@ def view_assignments():
             except ValueError:
                 print(f"Error parsing date: {due_date}")
                 assignment['formatted_due_date'] = "Invalid date"
-    flag=1
-    if not enrolled_courses:
-        flag=0
     return render_template('view_assignments.html', assignments=assignments,flag=flag)
 
 @app.route('/submit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
