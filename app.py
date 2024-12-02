@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Assignment
 from forms import LoginForm, RegisterForm, NoteUploadForm, AssignmentCreationForm, AssignmentSubmissionForm, NoteUploadForm, CourseForm
 from werkzeug.utils import secure_filename
-import os,random,string
+import os,random,string,tempfile
 from datetime import datetime
 
 from supabase import create_client, Client
@@ -13,10 +13,12 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def upload_to_supabase_storage(file, filename):
-    storage = supabase.storage
-    file_path = f"VirtualClassBucket/{filename}"
-    storage.from_("VirtualClassBucket").upload(file_path, file)
-    file_url = storage.from_("VirtualClassBucket").get_public_url(file_path)
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        file.save(tmp_file.name)
+        file_path = f"VirtualClassBucket/{filename}"
+        storage = supabase.storage
+        storage.from_("VirtualClassBucket").upload(file_path, tmp_file.name)
+        file_url = storage.from_("VirtualClassBucket").get_public_url(file_path)
     return file_url
 
 app = Flask(__name__)
@@ -379,7 +381,7 @@ def upload_notes():
             note_data = {
                 'filename': filename,
                 'file_url': file_url,
-                'uploaded_at': datetime.datetime.now().isoformat(),
+                'uploaded_at': datetime.now().isoformat(),
                 'teacher_id': current_user.id,
                 'course_id': selected_course_id
             }
