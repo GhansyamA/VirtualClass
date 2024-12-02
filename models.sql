@@ -1,12 +1,10 @@
--- Create User table
 CREATE TABLE "user" (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(150) UNIQUE NOT NULL,
-    password VARCHAR(150) NOT NULL,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
     role VARCHAR(50) NOT NULL
 );
 
--- Create Course table
 CREATE TABLE course (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -15,7 +13,6 @@ CREATE TABLE course (
     FOREIGN KEY (teacher_id) REFERENCES "user"(id)
 );
 
--- Create Assignment table
 CREATE TABLE assignment (
     id SERIAL PRIMARY KEY,
     title VARCHAR(150) NOT NULL,
@@ -27,7 +24,6 @@ CREATE TABLE assignment (
     FOREIGN KEY (course_id) REFERENCES course(id)
 );
 
--- Create Notes table
 CREATE TABLE notes (
     id SERIAL PRIMARY KEY,
     filename VARCHAR(150) NOT NULL,
@@ -35,10 +31,9 @@ CREATE TABLE notes (
     teacher_id INTEGER NOT NULL,
     course_id INTEGER NOT NULL,
     FOREIGN KEY (teacher_id) REFERENCES "user"(id),
-    FOREIGN KEY (course_id) REFERENCES course(id)
+    FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
 );
 
--- Create ActiveMeeting table
 CREATE TABLE public.active_meeting (
     id SERIAL PRIMARY KEY,
     room_name VARCHAR(50) NOT NULL,
@@ -49,7 +44,6 @@ CREATE TABLE public.active_meeting (
     FOREIGN KEY (course_id) REFERENCES course(id)
 );
 
--- Create Submission table
 CREATE TABLE submission (
     id SERIAL PRIMARY KEY,
     file_name VARCHAR(150) NOT NULL,
@@ -61,7 +55,6 @@ CREATE TABLE submission (
     FOREIGN KEY (assignment_id) REFERENCES assignment(id)
 );
 
--- Create Enrollment table
 CREATE TABLE enrollment (
     id SERIAL PRIMARY KEY,
     student_id INTEGER NOT NULL,
@@ -69,16 +62,3 @@ CREATE TABLE enrollment (
     FOREIGN KEY (student_id) REFERENCES "user"(id),
     FOREIGN KEY (course_id) REFERENCES course(id)
 );
-
-ALTER TABLE "user" ALTER COLUMN username TYPE VARCHAR(255);
-ALTER TABLE "user" ALTER COLUMN password TYPE VARCHAR(255);
-
--- Drop the existing foreign key constraint
-ALTER TABLE notes DROP CONSTRAINT notes_course_id_fkey;
-
--- Add a new foreign key constraint with ON DELETE CASCADE behavior
-ALTER TABLE notes
-ADD CONSTRAINT notes_course_id_fkey
-FOREIGN KEY (course_id)
-REFERENCES course(id)
-ON DELETE CASCADE;
