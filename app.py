@@ -4,7 +4,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, Assignment
 from forms import LoginForm, RegisterForm, NoteUploadForm, AssignmentCreationForm, AssignmentSubmissionForm, NoteUploadForm, CourseForm
 from werkzeug.utils import secure_filename
-import datetime,os,random,string
+import os,random,string
+from datetime import datetime
 
 from supabase import create_client, Client
 SUPABASE_URL = "https://zplmaprxfpfzmlaywyno.supabase.co"
@@ -391,16 +392,12 @@ def view_notes():
         response = supabase.table('notes').select('*').eq('teacher_id', current_user.id).eq('course_id', selected_course_id).execute()
     else:
         enrolled_courses = [enrollment['course_id'] for enrollment in supabase.table('enrollment').select('*').eq('student_id', current_user.id).execute().data]
-        if not enrolled_courses:
-            flash('You are not enrolled in any courses.', 'danger')
-            return redirect(url_for('dashboard'))
         response = supabase.table('notes').select('*').in_('course_id', enrolled_courses).execute()
-    if response and response.data:
         notes = response.data
-        return render_template('view_notes.html', notes=notes)
-    else:
-        flash('No notes found for the selected courses or an error occurred.', 'danger')
-        return redirect(url_for('dashboard'))
+        flag=1
+        if not enrolled_courses:
+            flag=0
+        return render_template('view_notes.html', notes=notes,flag=flag)
 
 @app.route('/create_assignment', methods=['GET', 'POST'])
 @login_required
@@ -430,29 +427,29 @@ def create_assignment():
 @app.route('/view_assignments')
 @login_required
 def view_assignments():
-    selected_course_id = session.get('selected_course_id')
-    if current_user.role == 'teacher' and selected_course_id:
+    if current_user.role == 'teacher':
+        selected_course_id = session.get('selected_course_id')
+        if not selected_course_id:
+            flash('No course selected. Please select a course to view assignments.', 'danger')
+            return redirect(url_for('dashboard'))
         response = supabase.table('assignment').select('*').eq('teacher_id', current_user.id).eq('course_id', selected_course_id).execute()
     else:
-        enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
+        enrolled_courses = [enrollment['course_id'] for enrollment in supabase.table('enrollment').select('course_id').eq('student_id', current_user.id).execute().data] 
         response = supabase.table('assignment').select('*').in_('course_id', enrolled_courses).execute()
-    if response:
-        assignments = response.data
-        for assignment in assignments:
-            due_date = assignment.get('due_date')
-            if due_date:
-                try:
-                    if isinstance(due_date, str):
-                        assignment['formatted_due_date'] = datetime.datetime.strptime(due_date, '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d %H:%M:%S')
-                    else:
-                        assignment['formatted_due_date'] = due_date.strftime('%Y-%m-%d %H:%M:%S')
-                except Exception as e:
-                    print(f"Error parsing date: {e}")
-                    assignment['formatted_due_date'] = "Invalid date"
-        return render_template('view_assignments.html', assignments=assignments)
-    else:
-        flash(f"Error fetching assignments: {response.json()}", 'danger')
-        return redirect(url_for('dashboard'))
+    assignments = response.data
+    for assignment in assignments:
+        due_date = assignment.get('due_date')
+        if due_date:
+            try:
+                parsed_date = datetime.fromisoformat(due_date)
+                assignment['formatted_due_date'] = parsed_date.strftime('%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                print(f"Error parsing date: {due_date}")
+                assignment['formatted_due_date'] = "Invalid date"
+    flag=1
+    if not enrolled_courses:
+        flag=0
+    return render_template('view_assignments.html', assignments=assignments,flag=flag)
 
 @app.route('/submit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
 @login_required
@@ -476,7 +473,7 @@ def submit_assignment(assignment_id):
                 'submitted_at': datetime.datetime.now().isoformat()
             }
             response = supabase.table('submissions').insert([submission]).execute()
-            if response.status_code == 201:
+            if response:
                 flash('Assignment submitted successfully!', 'success')
                 return redirect(url_for('view_assignments'))
             else:

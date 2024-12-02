@@ -103,7 +103,11 @@
         {% endfor %}
     </ul>
 {% else %}
-    <p class="no-notes">No notes uploaded yet.</p>
+    {% if flag == 0 %}
+        <p class="no-notes">Not enrolled to any courses</p>
+    {% else %}
+        <p class="no-notes">No notes uploaded yet.</p>
+    {% endif %}
 {% endif %}
 
     </div>

@@ -88,15 +88,17 @@
 <body>
     <div class="container">
         <h1>Assignments</h1>
+
 {% if current_user.role == 'teacher' %}
     <a href="{{ url_for('create_assignment') }}" class="create-btn"><i class="fas fa-plus"></i> Create Assignment</a>
 {% endif %}
+
 {% if assignments %}
     {% for assignment in assignments %}
         <div class="assignment-card">
             <h3>{{ assignment.title }}</h3>
             <p>{{ assignment.description }}</p>
-            <p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
+            <p><strong>Due Date:</strong> {{ assignment.formatted_due_date }}</p>
             {% if current_user.role == 'teacher' %}
                 <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}">View Submissions</a>
             {% endif %}
@@ -106,9 +108,12 @@
         </div>
     {% endfor %}
 {% else %}
-    <p class="no-assignments">No assignments available at the moment.</p>
+    {% if flag == 0 %}
+        <p class="no-assignments">Not enrolled to any courses</p>
+    {% else %}
+        <p class="no-assignments">No assignments uploaded yet.</p>
+    {% endif %}
 {% endif %}
-
     </div>
 </body>
 </html>
