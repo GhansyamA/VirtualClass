@@ -355,10 +355,10 @@ def unenroll(course_id):
         flash('You are not enrolled in this course.', 'danger')
     return redirect(url_for('dashboard'))
 
-def upload_to_supabase_storage(file, filename):
+def upload_to_supabase_storage(file, filename, folder):
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         file.save(tmp_file.name)
-        file_path = f"VirtualClassBucket/{filename}"
+        file_path = f"VirtualClassBucket/{folder}/{filename}"
         storage = supabase.storage
         storage.from_("VirtualClassBucket").upload(file_path, tmp_file.name)
         file_url = storage.from_("VirtualClassBucket").get_public_url(file_path)
@@ -377,7 +377,7 @@ def upload_notes():
         file = form.file.data
         if file:
             filename = secure_filename(file.filename)
-            file_url = upload_to_supabase_storage(file, filename)
+            file_url = upload_to_supabase_storage(file, filename, "notes")
             note_data = {
                 'filename': filename,
                 'file_url': file_url,
@@ -440,7 +440,7 @@ def create_assignment():
 @app.route('/view_assignments')
 @login_required
 def view_assignments():
-    flag=1
+    flag = 1
     if current_user.role == 'teacher':
         selected_course_id = session.get('selected_course_id')
         if not selected_course_id:
@@ -451,8 +451,11 @@ def view_assignments():
         enrolled_courses = [enrollment['course_id'] for enrollment in supabase.table('enrollment').select('course_id').eq('student_id', current_user.id).execute().data] 
         response = supabase.table('assignment').select('*').in_('course_id', enrolled_courses).execute()
         if not enrolled_courses:
-            flag=0
+            flag = 0
     assignments = response.data
+    if current_user.role == 'student':
+        submissions = supabase.table('submission').select('*').eq('student_id', current_user.id).execute()
+        submission_map = {submission['assignment_id']: submission for submission in submissions.data}
     for assignment in assignments:
         due_date = assignment.get('due_date')
         if due_date:
@@ -462,7 +465,11 @@ def view_assignments():
             except ValueError:
                 print(f"Error parsing date: {due_date}")
                 assignment['formatted_due_date'] = "Invalid date"
-    return render_template('view_assignments.html', assignments=assignments,flag=flag)
+        if current_user.role == 'student' and assignment['id'] in submission_map:
+            assignment['is_submitted'] = True
+        else:
+            assignment['is_submitted'] = False
+    return render_template('view_assignments.html', assignments=assignments, flag=flag)
 
 @app.route('/submit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
 @login_required
@@ -480,7 +487,7 @@ def submit_assignment(assignment_id):
         file = form.file.data
         if file:
             filename = secure_filename(file.filename)
-            file_url = upload_to_supabase_storage(file, filename)
+            file_url = upload_to_supabase_storage(file, filename, "submissions")
             submission_data = {
                 'file_name': filename,
                 'file_url': file_url,

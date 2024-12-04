@@ -103,7 +103,11 @@
                 <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}">View Submissions</a>
             {% endif %}
             {% if current_user.role == 'student' %}
-                <a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}" class="btn btn-primary"><i class="fas fa-upload"></i> Submit</a>
+                {% if assignment.is_submitted %}
+                    <span class="btn btn-primary">Submitted</span>
+                {% else %}
+                    <a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}" class="btn btn-primary"><i class="fas fa-upload"></i> Submit</a>
+                {% endif %}
             {% endif %}
         </div>
     {% endfor %}
@@ -114,6 +118,7 @@
         <p class="no-assignments">No assignments uploaded yet.</p>
     {% endif %}
 {% endif %}
+
     </div>
 </body>
 </html>
