@@ -78,11 +78,33 @@
         .text-link a:hover {
             text-decoration: underline;
         }
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 5px;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <h1>Login</h1>
+        
+        <!-- Display Flash Message -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert">
+                    <ul>
+                        {% for category, message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
+        
         <form method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
