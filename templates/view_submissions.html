@@ -20,7 +20,7 @@
               {{ submission.file_name }}
             </a>
           </td>
-          <td>{{ submission.submitted_at.split('.')[0] }}</td>
+          <td>{{ submission.submitted_at}}</td>
           <td>
             <input type="number" name="marks_{{ submission.id }}" value="{{ submission.marks or '' }}" required>
           </td>

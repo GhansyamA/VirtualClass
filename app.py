@@ -516,13 +516,28 @@ def view_submissions(assignment_id):
     else:
         submissions = []
         flash(f"Error fetching submissions: {response.json()}", 'danger')
+    student_ids = {submission['student_id'] for submission in submissions}
+    student_response = supabase.table('user').select('*').in_('id', list(student_ids)).execute()
+    if student_response and student_response.data:
+        students = {student['id']: student for student in student_response.data}
+    else:
+        students = {}
+    for submission in submissions:
+        student = students.get(submission['student_id'])
+        if student:
+            submission['student'] = student
+        if submission.get('submitted_at'):
+            submission['submitted_at'] = datetime.fromisoformat(submission['submitted_at']).strftime('%Y-%m-%d %H:%M:%S')
     if request.method == 'POST':
         for submission in submissions:
             marks_key = f"marks_{submission['id']}"
             marks = request.form.get(marks_key)
-            if marks:
-                response = supabase.table('submission').update({'marks': marks}).eq('id', submission['id']).execute()
-        flash('Marks updated successfully!', 'success')
+            if marks and marks.isdigit():
+                response = supabase.table('submission').update({'marks': int(marks)}).eq('id', submission['id']).execute()
+                if response:
+                    flash('Marks updated successfully!', 'success')
+                else:
+                    flash(f"Error updating marks: {response.json()}", 'danger')
     return render_template('view_submissions.html', assignment=assignment, submissions=submissions)
 
 @app.route('/logout')
