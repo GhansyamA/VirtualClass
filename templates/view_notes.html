@@ -80,6 +80,13 @@
             font-style: italic;
             margin-top: 20px;
         }
+        .delete-btn {
+            color: #ff0000;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
@@ -99,6 +106,11 @@
                     Uploaded by: {{ note.teacher_id }} on {{ note.uploaded_at }}
                 </div>
             </div>
+            {% if current_user.role == 'teacher' %}
+                <form action="{{ url_for('delete_note', note_id=note.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="delete-btn"><i class="fas fa-trash"></i> Delete</button>
+                </form>
+            {% endif %}
         </li>
     {% endfor %}
     </ul>
@@ -109,7 +121,6 @@
         <p class="no-notes">No notes uploaded yet.</p>
     {% endif %}
 {% endif %}
-
     </div>
 </body>
 </html>

@@ -392,6 +392,27 @@ def upload_notes():
                 flash(f"Error: {response.json()}", 'danger')
     return render_template('upload_notes.html', form=form)
 
+@app.route('/delete_note/<int:note_id>', methods=['POST'])
+@login_required
+def delete_note(note_id):
+    if current_user.role != 'teacher':
+        flash('Only teachers can delete notes.', 'danger')
+        return redirect(url_for('view_notes'))
+    note_response = supabase.table('notes').select('*').eq('id', note_id).execute()
+    note = note_response.data[0] if note_response and note_response.data else None
+    if not note:
+        flash('Note not found.', 'danger')
+        return redirect(url_for('view_notes'))
+    file_path = f"VirtualClassBucket/notes/{note['filename']}"
+    storage = supabase.storage
+    storage.from_("VirtualClassBucket").remove([file_path])
+    response = supabase.table('notes').delete().eq('id', note_id).execute()
+    if response:
+        flash('Note and its file deleted successfully.', 'success')
+    else:
+        flash(f"Error deleting note: {response.json()}", 'danger')
+    return redirect(url_for('view_notes'))
+
 @app.route('/view_notes')
 @login_required
 def view_notes():
@@ -436,6 +457,25 @@ def create_assignment():
         else:
             flash(f"Error: {response.json()}", 'danger')
     return render_template('create_assignment.html', form=form)
+
+@app.route('/delete_assignment/<int:assignment_id>', methods=['POST'])
+@login_required
+def delete_assignment(assignment_id):
+    if current_user.role != 'teacher':
+        flash('Only teachers can delete assignments.', 'danger')
+        return redirect(url_for('view_assignments'))
+    assignment_response = supabase.table('assignment').select('*').eq('id', assignment_id).execute()
+    assignment = assignment_response.data[0] if assignment_response and assignment_response.data else None
+    if not assignment:
+        flash('Assignment not found.', 'danger')
+        return redirect(url_for('view_assignments'))
+    submission_response = supabase.table('submission').delete().eq('assignment_id', assignment_id).execute()
+    delete_response = supabase.table('assignment').delete().eq('id', assignment_id).execute()
+    if delete_response:
+        flash('Assignment and its related submissions have been deleted successfully.', 'success')
+    else:
+        flash('Error deleting assignment.', 'danger')
+    return redirect(url_for('view_assignments'))
 
 @app.route('/view_assignments')
 @login_required

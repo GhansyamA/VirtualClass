@@ -49,6 +49,7 @@
             border-radius: 8px;
             background: #f9f9f9;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative; /* To allow absolute positioning of the delete button */
         }
         .assignment-card h3 {
             margin: 0 0 10px;
@@ -77,6 +78,22 @@
         .btn-primary:hover {
             background: #145b28;
         }
+        .btn-danger {
+            background: #e74c3c; /* Red background */
+            position: absolute;
+            right: 20px;
+            top: 20px;
+        }
+        .btn-danger:hover {
+            background: #c0392b; /* Darker red when hovered */
+        }
+        .btn-secondary {
+            background: #3498db; /* Blue background for view button */
+            position: relative;
+        }
+        .btn-secondary:hover {
+            background: #2980b9; /* Darker blue when hovered */
+        }
         .no-assignments {
             text-align: center;
             color: #666;
@@ -89,36 +106,45 @@
     <div class="container">
         <h1>Assignments</h1>
 
-{% if current_user.role == 'teacher' %}
-    <a href="{{ url_for('create_assignment') }}" class="create-btn"><i class="fas fa-plus"></i> Create Assignment</a>
-{% endif %}
+        {% if current_user.role == 'teacher' %}
+            <a href="{{ url_for('create_assignment') }}" class="create-btn"><i class="fas fa-plus"></i> Create Assignment</a>
+        {% endif %}
+        
+        {% if assignments %}
+            {% for assignment in assignments %}
+                <div class="assignment-card">
+                    <h3>{{ assignment.title }}</h3>
+                    <p>{{ assignment.description }}</p>
+                    <p><strong>Due Date:</strong> {{ assignment.formatted_due_date }}</p>
+                    
+                    {% if current_user.role == 'teacher' %}
+                        <!-- Delete Assignment Button -->
+                        <form action="{{ url_for('delete_assignment', assignment_id=assignment.id) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+                        </form>
+                    {% endif %}
+                    
+                    {% if current_user.role == 'teacher' %}
+                        <!-- View Submissions Button -->
+                        <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" class="btn btn-secondary"><i class="fas fa-eye"></i> View Submissions</a>
+                    {% endif %}
 
-{% if assignments %}
-    {% for assignment in assignments %}
-        <div class="assignment-card">
-            <h3>{{ assignment.title }}</h3>
-            <p>{{ assignment.description }}</p>
-            <p><strong>Due Date:</strong> {{ assignment.formatted_due_date }}</p>
-            {% if current_user.role == 'teacher' %}
-                <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}">View Submissions</a>
+                    {% if current_user.role == 'student' %}
+                        {% if assignment.is_submitted %}
+                            <span class="btn btn-primary">Submitted</span>
+                        {% else %}
+                            <a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}" class="btn btn-primary"><i class="fas fa-upload"></i> Submit</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            {% if flag == 0 %}
+                <p class="no-assignments">Not enrolled to any courses</p>
+            {% else %}
+                <p class="no-assignments">No assignments uploaded yet.</p>
             {% endif %}
-            {% if current_user.role == 'student' %}
-                {% if assignment.is_submitted %}
-                    <span class="btn btn-primary">Submitted</span>
-                {% else %}
-                    <a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}" class="btn btn-primary"><i class="fas fa-upload"></i> Submit</a>
-                {% endif %}
-            {% endif %}
-        </div>
-    {% endfor %}
-{% else %}
-    {% if flag == 0 %}
-        <p class="no-assignments">Not enrolled to any courses</p>
-    {% else %}
-        <p class="no-assignments">No assignments uploaded yet.</p>
-    {% endif %}
-{% endif %}
-
+        {% endif %}
     </div>
 </body>
 </html>
