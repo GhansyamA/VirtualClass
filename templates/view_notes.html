@@ -90,17 +90,17 @@
 {% endif %}
 {% if notes %}
     <ul>
-        {% for note in notes %}
-            <li>
-                <div>
-                    <i class="fas fa-file-alt icon"></i>
-                    <a href="{{ note.file_url }}" target="_blank">{{ note.filename }}</a>
-                    <div class="note-meta">
-                        Uploaded by: {{ note.teacher_id }} on {{ note.uploaded_at }}
-                    </div>
+    {% for note in notes %}
+        <li>
+            <div>
+                <i class="fas fa-file-alt icon"></i>
+                <a href="{{ note.file_url }}" target="_blank">{{ note.filename }}</a>
+                <div class="note-meta">
+                    Uploaded by: {{ note.teacher_id }} on {{ note.uploaded_at }}
                 </div>
-            </li>
-        {% endfor %}
+            </div>
+        </li>
+    {% endfor %}
     </ul>
 {% else %}
     {% if flag == 0 %}
@@ -109,7 +109,6 @@
         <p class="no-notes">No notes uploaded yet.</p>
     {% endif %}
 {% endif %}
-
 
     </div>
 </body>

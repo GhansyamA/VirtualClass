@@ -12,15 +12,6 @@ SUPABASE_URL = "https://zplmaprxfpfzmlaywyno.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwbG1hcHJ4ZnBmem1sYXl3eW5vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzI5ODc0MTEsImV4cCI6MjA0ODU2MzQxMX0.YhLr03RloOoibQXS_ZDSL_LBHRdfDrFXK85c32AV9bk"
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def upload_to_supabase_storage(file, filename):
-    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-        file.save(tmp_file.name)
-        file_path = f"VirtualClassBucket/{filename}"
-        storage = supabase.storage
-        storage.from_("VirtualClassBucket").upload(file_path, tmp_file.name)
-        file_url = storage.from_("VirtualClassBucket").get_public_url(file_path)
-    return file_url
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -363,6 +354,15 @@ def unenroll(course_id):
     else:
         flash('You are not enrolled in this course.', 'danger')
     return redirect(url_for('dashboard'))
+
+def upload_to_supabase_storage(file, filename):
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        file.save(tmp_file.name)
+        file_path = f"VirtualClassBucket/{filename}"
+        storage = supabase.storage
+        storage.from_("VirtualClassBucket").upload(file_path, tmp_file.name)
+        file_url = storage.from_("VirtualClassBucket").get_public_url(file_path)
+    return file_url
 
 @app.route('/upload_notes', methods=['GET', 'POST'])
 @login_required
