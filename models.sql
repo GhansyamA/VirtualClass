@@ -62,5 +62,6 @@ CREATE TABLE enrollment (
     student_id INTEGER NOT NULL,
     course_id INTEGER NOT NULL,
     FOREIGN KEY (student_id) REFERENCES "user"(id),
-    FOREIGN KEY (course_id) REFERENCES course(id)
+    FOREIGN KEY (course_id) REFERENCES course(id),
+    UNIQUE (student_id, course_id)
 );

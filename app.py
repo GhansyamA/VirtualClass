@@ -1,7 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, session, current_app
+from flask import Flask, render_template, redirect, url_for, flash, request, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, Assignment
+from models import db, User
 from forms import LoginForm, RegisterForm, NoteUploadForm, AssignmentCreationForm, AssignmentSubmissionForm, NoteUploadForm, CourseForm
 from werkzeug.utils import secure_filename
 import os,random,string,tempfile
@@ -15,7 +15,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
-ALLOWED_EXTENSIONS = {'pdf', 'txt', 'docx'}
+ALLOWED_EXTENSIONS = {'pdf', 'txt', 'docx','png', 'jpg', 'jpeg'}
 JWT_SECRET_KEY = "your_jitsi_secret_key"
 
 db.init_app(app)
@@ -478,24 +478,24 @@ def submit_assignment(assignment_id):
     form = AssignmentSubmissionForm()
     if form.validate_on_submit():
         file = form.file.data
-        if file and allowed_file(file.filename):
+        if file:
             filename = secure_filename(file.filename)
             file_url = upload_to_supabase_storage(file, filename)
-            submission = {
+            submission_data = {
                 'file_name': filename,
                 'file_url': file_url,
                 'student_id': current_user.id,
                 'assignment_id': assignment_id,
-                'submitted_at': datetime.datetime.now().isoformat(),
+                'submitted_at': datetime.now().isoformat()
             }
-            response = supabase.table('submission').insert([submission]).execute()
+            response = supabase.table('submission').insert([submission_data]).execute()
             if response:
                 flash('Assignment submitted successfully!', 'success')
                 return redirect(url_for('view_assignments'))
             else:
                 flash(f"Error submitting assignment: {response.json()}", 'danger')
         else:
-            flash('Invalid file type. Please upload a valid file.', 'danger')
+            flash('Please upload a valid file.', 'danger')
     return render_template('submit_assignment.html', form=form, assignment=assignment)
 
 @app.route('/view_submissions/<int:assignment_id>', methods=['GET', 'POST'])

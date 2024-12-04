@@ -1,33 +1,33 @@
 <h2>Submissions for Assignment: {{ assignment.title }}</h2>
-  <p><strong>Description:</strong> {{ assignment.description }}</p>
-  <p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
-  <form method="POST">
-    <table border="1">
-      <thead>
+<p><strong>Description:</strong> {{ assignment.description }}</p>
+<p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
+<form method="POST">
+  <table border="1">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Submission File</th>
+        <th>Submitted At</th>
+        <th>Marks</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for submission in submissions %}
         <tr>
-          <th>Student</th>
-          <th>Submission File</th>
-          <th>Submitted At</th>
-          <th>Marks</th>
+          <td>{{ submission.student.username }}</td>
+          <td>
+            <a href="{{ submission.file_url }}" target="_blank">
+              {{ submission.file_name }}
+            </a>
+          </td>
+          <td>{{ submission.submitted_at.split('.')[0] }}</td>
+          <td>
+            <input type="number" name="marks_{{ submission.id }}" value="{{ submission.marks or '' }}" required>
+          </td>
         </tr>
-      </thead>
-      <tbody>
-        {% for submission in submissions %}
-          <tr>
-            <td>{{ submission.student.username }}</td>
-            <td>
-              <a href="{{ submission.file_url }}" target="_blank">
-                {{ submission.file_name }}
-              </a>
-            </td>
-            <td>{{ submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            <td>
-              <input type="number" name="marks_{{ submission.id }}" value="{{ submission.marks or '' }}" required>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    <button type="submit">Save Marks</button>
-  </form>
-  <a href="{{ url_for('view_assignments') }}">Back to Assignments</a>
+      {% endfor %}
+    </tbody>
+  </table>
+  <button type="submit">Save Marks</button>
+</form>
+<a href="{{ url_for('view_assignments') }}">Back to Assignments</a>

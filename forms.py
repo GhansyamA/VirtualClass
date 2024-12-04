@@ -26,7 +26,7 @@ class AssignmentCreationForm(FlaskForm):
     submit = SubmitField('Create Assignment')
 
 class AssignmentSubmissionForm(FlaskForm):
-    file = FileField('Upload Assignment', validators=[FileAllowed(['pdf', 'docx', 'zip'], 'Only PDF, DOCX, or ZIP files are allowed')])
+    file = FileField('Upload Assignment', validators=[FileAllowed(['pdf', 'txt', 'docx', 'zip'], 'Only PDF, DOCX, or ZIP files are allowed')])
     submit = SubmitField('Submit Assignment')
 
 class CourseForm(FlaskForm):
