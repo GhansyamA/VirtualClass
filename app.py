@@ -527,29 +527,18 @@ def submit_assignment(assignment_id):
     if current_user.role != 'student':
         flash('Only students can submit assignments.', 'danger')
         return redirect(url_for('dashboard'))
-    
-    # Fetch the assignment details from the database
     response = supabase.table('assignment').select('*').eq('id', assignment_id).execute()
     assignment = response.data[0] if response and response.data else None
     if not assignment:
         flash('Assignment not found.', 'danger')
         return redirect(url_for('view_assignments'))
-
-    # Create the form instance for assignment submission
     form = AssignmentSubmissionForm()
-
-    # Handle form submission
     if form.validate_on_submit():
         file = form.file.data
         if file:
             try:
-                # Securely name the uploaded file
                 filename = secure_filename(file.filename)
-
-                # Upload the file to Supabase storage
                 file_url = upload_to_supabase_storage(file, filename, "submissions")
-                
-                # Insert the submission into the database
                 submission_data = {
                     'file_name': filename,
                     'file_url': file_url,
@@ -558,8 +547,6 @@ def submit_assignment(assignment_id):
                     'submitted_at': datetime.now().isoformat()
                 }
                 response = supabase.table('submission').insert([submission_data]).execute()
-
-                # Check for successful insertion
                 if response and response.data:
                     flash('Assignment submitted successfully!', 'success')
                     return redirect(url_for('view_assignments'))
@@ -569,7 +556,6 @@ def submit_assignment(assignment_id):
                 flash(f"An error occurred while uploading the file: {str(e)}", 'danger')
         else:
             flash('Please upload a valid file.', 'danger')
-
     return render_template('submit_assignment.html', form=form, assignment=assignment)
 
 @app.route('/view_submissions/<int:assignment_id>', methods=['GET', 'POST'])

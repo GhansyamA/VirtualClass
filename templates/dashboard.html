@@ -109,6 +109,64 @@
         .logout a:hover {
             text-decoration: underline;
         }
+        /* Container for course cards */
+.course-container {
+    display: flex;
+    flex-wrap: nowrap; /* No wrapping */
+    gap: 10px; /* Reduced spacing between cards */
+    justify-content: flex-start; /* Align cards to the left */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    padding: 10px;
+    max-width: 100%; /* Limit to the screen width */
+}
+
+/* Individual course card */
+.course-card {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 5px; /* Reduced padding */
+    width: 150px; /* Fixed smaller width */
+    height: 100px; /* Fixed smaller height */
+    text-align: center;
+    font-size: 12px; /* Smaller font */
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+/* Hover effect for cards */
+.course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Course title */
+.course-card h4 {
+    font-size: 14px; /* Smaller title font */
+    margin-bottom: 5px; /* Reduced margin */
+    color: #333;
+    overflow: hidden; /* Prevent overflow of long titles */
+    text-overflow: ellipsis; /* Add ellipsis for long titles */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+/* Unenroll button */
+.course-card button {
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 10px; /* Smaller font for button */
+    background: #dc3545;
+    color: #fff;
+    padding: 3px 5px; /* Reduced padding */
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.course-card button:hover {
+    background: #c82333;
+}
+
     </style>
 </head>
 <body>
@@ -142,19 +200,19 @@
         </ul>
         {% if current_user.role == 'student' %}
     <h2>Enrolled Courses</h2>
-    <ul>
+    <div class="course-container">
         {% for course in enrolled_courses %}
-            <li>
-    <p>{{ course.name }}</p>
-    <form action="{{ url_for('unenroll', course_id=course.id) }}" method="POST">
-        <button type="submit" style="font-family: 'Segoe UI', sans-serif;">Unenroll</button>
-    </form>
-</li>
-
+        <div class="course-card">
+            <h3>{{ course.name }}</h3>
+            <form action="{{ url_for('unenroll', course_id=course.id) }}" method="POST">
+                <button type="submit">Unenroll</button>
+            </form>
+        </div>
         {% endfor %}
-    </ul>
+    </div>
     <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Explore Courses</a>
 {% endif %}
+
         <div class="section">
             {% if current_user.role == 'student' %}
             <h2>Active Meeting</h2>
