@@ -45,6 +45,25 @@
         .upload-btn:hover {
             background: #1e5bca;
         }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .btn-primary {
+            background: #3b82f6;
+        }
+        .btn-primary:hover {
+            background: #1e5bca;
+        }
         ul {
             list-style: none;
             padding: 0;
@@ -99,7 +118,6 @@
     </style>
 </head>
 <body>
-    <!-- Dashboard Button -->
     <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
         <i class="fas home"></i> Home
     </a>

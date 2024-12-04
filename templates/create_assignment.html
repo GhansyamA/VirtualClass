@@ -52,6 +52,25 @@
             resize: vertical;
             min-height: 100px;
         }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .btn-primary {
+            background: #3b82f6;
+        }
+        .btn-primary:hover {
+            background: #1e5bca;
+        }
         button {
             font-size: 16px;
             padding: 10px 15px;
@@ -90,31 +109,87 @@
         .btn-dashboard:hover {
             background: #218838;
         }
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+        }        
     </style>
 </head>
 <body>
-    <!-- Dashboard Button -->
     <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
         <i class="fas home"></i> Home
     </a>
     <div class="container">
         <h1>Create Assignment</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert">
+                    {% for category, message in messages %}
+                        <div class="alert-{{ category }}">
+                            <p>{{ message }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Assignment creation form -->
         <form method="POST">
             {{ form.hidden_tag() }}
+            
             <label for="title">{{ form.title.label }}</label>
             <div class="form-group">
-                
                 {{ form.title(class="form-control") }}
+                {% if form.title.errors %}
+                    <div class="error-message">
+                        {% for error in form.title.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+
             <label for="description">{{ form.description.label }}</label>
             <div class="form-group">
-                
                 {{ form.description(class="form-control") }}
+                {% if form.description.errors %}
+                    <div class="error-message">
+                        {% for error in form.description.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+
+            <label for="due_date">{{ form.due_date.label }}</label>
             <div class="form-group">
-                <label for="due_date">{{ form.due_date.label }}</label>
-                {{ form.due_date(class="form-control") }}
+                <input type="datetime-local" id="due_date" name="due_date" class="form-control" value="{{ formatted_due_date }}">
+                {% if form.due_date.errors %}
+                    <div class="error-message">
+                        {% for error in form.due_date.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
+
             <button type="submit" class="btn-submit">
                 <i class="fas fa-save"></i> Create Assignment
             </button>

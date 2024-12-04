@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
 from forms import LoginForm, RegisterForm, NoteUploadForm, AssignmentCreationForm, AssignmentSubmissionForm, NoteUploadForm, CourseForm
 from werkzeug.utils import secure_filename
-import os,random,string,tempfile
+import random,string,tempfile
 from datetime import datetime
 
 from supabase import create_client, Client
@@ -13,10 +13,10 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+app.config['SECRET_KEY'] = 'secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 ALLOWED_EXTENSIONS = {'pdf', 'txt', 'docx','png', 'jpg', 'jpeg'}
-JWT_SECRET_KEY = "your_jitsi_secret_key"
+JWT_SECRET_KEY = "jitsi_secret_key"
 
 db.init_app(app)
 
@@ -42,6 +42,10 @@ def load_user(user_id):
 def register():
     form = RegisterForm()
     if form.validate_on_submit():
+        existing_user = supabase.table('user').select('*').eq('username', form.username.data).execute()
+        if existing_user.data:
+            flash('Username already taken. Please choose a different one.', 'danger')
+            return redirect(url_for('register'))
         hashed_password = generate_password_hash(form.password.data)
         response = supabase.table('user').insert([{
             'username': form.username.data,
@@ -443,20 +447,26 @@ def create_assignment():
         return redirect(url_for('select_course'))
     form = AssignmentCreationForm()
     if form.validate_on_submit():
-        due_date_str = form.due_date.data.isoformat()
-        assignment_data = {
-            'title': form.title.data,
-            'description': form.description.data,
-            'due_date': due_date_str,
-            'teacher_id': current_user.id,
-            'course_id': selected_course_id
-        }
-        response = supabase.table('assignment').insert([assignment_data]).execute()
-        if response:
-            return redirect(url_for('view_assignments'))
-        else:
-            flash(f"Error: {response.json()}", 'danger')
-    return render_template('create_assignment.html', form=form)
+        try:
+            due_date = form.due_date.data
+            due_date_str = due_date.strftime('%Y-%m-%dT%H:%M:%S') if due_date else None
+            assignment_data = {
+                'title': form.title.data,
+                'description': form.description.data,
+                'due_date': due_date_str,
+                'teacher_id': current_user.id,
+                'course_id': selected_course_id
+            }
+            response = supabase.table('assignment').insert([assignment_data]).execute()
+            if response.data:
+                flash('Assignment created successfully!', 'success')
+                return redirect(url_for('view_assignments'))
+            else:
+                flash(f"Error inserting assignment: {response.error_message}", 'danger')
+        except Exception as e:
+            flash(f"An error occurred while creating the assignment: {str(e)}", 'danger')
+    formatted_due_date = form.due_date.data.strftime('%Y-%m-%dT%H:%M') if form.due_date.data else None
+    return render_template('create_assignment.html', form=form, formatted_due_date=formatted_due_date)
 
 @app.route('/delete_assignment/<int:assignment_id>', methods=['POST'])
 @login_required
@@ -517,32 +527,49 @@ def submit_assignment(assignment_id):
     if current_user.role != 'student':
         flash('Only students can submit assignments.', 'danger')
         return redirect(url_for('dashboard'))
+    
+    # Fetch the assignment details from the database
     response = supabase.table('assignment').select('*').eq('id', assignment_id).execute()
     assignment = response.data[0] if response and response.data else None
     if not assignment:
         flash('Assignment not found.', 'danger')
         return redirect(url_for('view_assignments'))
+
+    # Create the form instance for assignment submission
     form = AssignmentSubmissionForm()
+
+    # Handle form submission
     if form.validate_on_submit():
         file = form.file.data
         if file:
-            filename = secure_filename(file.filename)
-            file_url = upload_to_supabase_storage(file, filename, "submissions")
-            submission_data = {
-                'file_name': filename,
-                'file_url': file_url,
-                'student_id': current_user.id,
-                'assignment_id': assignment_id,
-                'submitted_at': datetime.now().isoformat()
-            }
-            response = supabase.table('submission').insert([submission_data]).execute()
-            if response:
-                flash('Assignment submitted successfully!', 'success')
-                return redirect(url_for('view_assignments'))
-            else:
-                flash(f"Error submitting assignment: {response.json()}", 'danger')
+            try:
+                # Securely name the uploaded file
+                filename = secure_filename(file.filename)
+
+                # Upload the file to Supabase storage
+                file_url = upload_to_supabase_storage(file, filename, "submissions")
+                
+                # Insert the submission into the database
+                submission_data = {
+                    'file_name': filename,
+                    'file_url': file_url,
+                    'student_id': current_user.id,
+                    'assignment_id': assignment_id,
+                    'submitted_at': datetime.now().isoformat()
+                }
+                response = supabase.table('submission').insert([submission_data]).execute()
+
+                # Check for successful insertion
+                if response and response.data:
+                    flash('Assignment submitted successfully!', 'success')
+                    return redirect(url_for('view_assignments'))
+                else:
+                    flash(f"Error submitting assignment: {response.json()}", 'danger')
+            except Exception as e:
+                flash(f"An error occurred while uploading the file: {str(e)}", 'danger')
         else:
             flash('Please upload a valid file.', 'danger')
+
     return render_template('submit_assignment.html', form=form, assignment=assignment)
 
 @app.route('/view_submissions/<int:assignment_id>', methods=['GET', 'POST'])

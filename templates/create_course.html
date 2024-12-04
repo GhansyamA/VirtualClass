@@ -94,10 +94,28 @@
         .btn-dashboard:hover {
             background: #218838;
         }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .btn-primary {
+            background: #3b82f6;
+        }
+        .btn-primary:hover {
+            background: #1e5bca;
+        }
     </style>
 </head>
 <body>
-    <!-- Dashboard Button -->
     <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
         <i class="fas home"></i> Home
     </a>

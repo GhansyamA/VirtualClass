@@ -111,6 +111,17 @@
         .btn-secondary:hover {
             background: #1a4c91; /* Darker blue on hover */
         }
+        .submitted-message {
+            background-color: #d4edda;
+            color: #155724;
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -119,7 +130,6 @@
     </a>
     <div class="container">
         <h1>Assignments</h1>
-
         {% if current_user.role == 'teacher' %}
             <a href="{{ url_for('create_assignment') }}" class="create-btn"><i class="fas fa-plus"></i> Create Assignment</a>
         {% endif %}
@@ -130,22 +140,17 @@
                     <h3>{{ assignment.title }}</h3>
                     <p>{{ assignment.description }}</p>
                     <p><strong>Due Date:</strong> {{ assignment.formatted_due_date }}</p>
-                    
                     {% if current_user.role == 'teacher' %}
-                        <!-- Delete Assignment Button -->
                         <form action="{{ url_for('delete_assignment', assignment_id=assignment.id) }}" method="POST" style="display:inline;">
                             <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
                         </form>
                     {% endif %}
-                    
                     {% if current_user.role == 'teacher' %}
-                        <!-- View Submissions Button -->
                         <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" class="btn btn-secondary"><i class="fas fa-eye"></i> View Submissions</a>
                     {% endif %}
-
                     {% if current_user.role == 'student' %}
                         {% if assignment.is_submitted %}
-                            <span class="btn btn-primary">Submitted</span>
+                        <div class="submitted-message">Submitted</div>
                         {% else %}
                             <a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}" class="btn btn-primary"><i class="fas fa-upload"></i> Submit</a>
                         {% endif %}

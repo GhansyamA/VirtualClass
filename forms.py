@@ -22,7 +22,7 @@ class NoteUploadForm(FlaskForm):
 class AssignmentCreationForm(FlaskForm):
     title = StringField('Assignment Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[DataRequired()])
-    due_date = DateTimeField('Due Date (YYYY-MM-DD HH:MM:SS)', format='%Y-%m-%d %H:%M:%S', validators=[DataRequired()])
+    due_date = DateTimeField('Due Date', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
     submit = SubmitField('Create Assignment')
 
 class AssignmentSubmissionForm(FlaskForm):

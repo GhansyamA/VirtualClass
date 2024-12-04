@@ -84,6 +84,25 @@
             color: #3a7bd5;
             text-decoration: none;
         }
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        .btn-primary {
+            background: #3b82f6;
+        }
+        .btn-primary:hover {
+            background: #1e5bca;
+        }
         .back-link a:hover {
             text-decoration: underline;
         }
@@ -103,14 +122,13 @@
     </style>
 </head>
 <body>
-    <!-- Dashboard Button -->
     <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
         <i class="fas home"></i> Home
     </a>
     <div class="container">
         <h2>Submissions for Assignment: {{ assignment.title }}</h2>
         <p><strong>Description:</strong> {{ assignment.description }}</p>
-        <p><strong>Due Date:</strong> {{ assignment.due_date }}</p>
+        <p><strong>Due Date:</strong> {{ assignment.due_date.replace('T', ' ') if assignment.due_date else '' }}</p>
         <form method="POST">
             <table>
                 <thead>

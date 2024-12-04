@@ -122,6 +122,18 @@
 <body>
     <div class="login-container">
         <h1>Login</h1>
+        <!-- Flash message display -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+    <div class="flash-messages">
+        {% set category, message = messages[-1] %}
+        <div class="flash-message {{ category }}">
+            {{ message }}
+        </div>
+    </div>
+{% endif %}
+{% endwith %}
+
         <form method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
