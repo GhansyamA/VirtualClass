@@ -7,24 +7,33 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #00d2ff, #3a7bd5);
-            color: #333;
+            font-family: Segoe UI;
+            background: linear-gradient(135deg, #fff, #3b82f6);
+            background-size: 200% 200%;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
-            padding: 0;
+            animation: gradientMove 6s infinite ease-in-out;
         }
         .container {
-            max-width: 800px;
+            width:700px;
+            max-width: 1000px; /* Increased width for the content box */
             margin: 40px auto;
             background: #fff;
-            padding: 20px 30px;
+            padding: 20px 40px;
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: left; /* Left aligned content */
         }
         h1 {
             text-align: center;
-            color: #3a7bd5;
-            margin-bottom: 20px;
+            color: #1f4037;
+        }
+        h2 {
+            font-size: 18px;
         }
         form {
             display: flex;
@@ -72,19 +81,38 @@
         .back-link a:hover {
             text-decoration: underline;
         }
+        .btn-dashboard {
+            background: #3b82f6;
+            font-size: 12px; /* Smaller button */
+            padding: 8px 12px; /* Adjust padding for size */
+            position: absolute; /* Position it absolutely */
+            top: 20px; /* Distance from top */
+            left: 20px; /* Distance from left */
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .btn-dashboard:hover {
+            background: #218838;
+        }
     </style>
 </head>
 <body>
+    <!-- Dashboard Button -->
+    <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
+        <i class="fas home"></i> Home
+    </a>
     <div class="container">
         <h1>Create Course</h1>
         <form method="POST">
             {{ form.hidden_tag() }}
+            <label for="name">{{ form.name.label }}</label>
             <div class="form-group">
-                <label for="name">{{ form.name.label }}</label>
+                
                 {{ form.name(class="form-control") }}
             </div>
+            <label for="description">{{ form.description.label }}</label>
             <div class="form-group">
-                <label for="description">{{ form.description.label }}</label>
+                
                 {{ form.description(class="form-control") }}
             </div>
             <button type="submit" class="btn-submit">
@@ -93,7 +121,7 @@
         </form>
 
         <div class="back-link">
-            <a href="{{ url_for('view_courses') }}"><i class="fas fa-arrow-left"></i> Back to Courses</a>
+            <a href="{{ url_for('select_course') }}"><i class="fas fa-arrow-left"></i> Back to Course Selection</a>
         </div>
     </div>
 </body>

@@ -7,23 +7,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #1f4037, #99f2c8);
-            color: #333;
+            font-family: Segoe UI;
+            background: linear-gradient(135deg, #fff, #3b82f6);
+            color: #000000;
             margin: 0;
             padding: 0;
+            height: 100vh;
         }
         .container {
             max-width: 900px;
             margin: 40px auto;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.5);
             padding: 20px 30px;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
         }
         h1 {
             text-align: center;
-            color: #1f4037;
+            color: #000000;
             margin-bottom: 30px;
         }
         .create-btn {
@@ -32,7 +33,7 @@
             font-size: 14px;
             font-weight: bold;
             color: #fff;
-            background: #1f4037;
+            background: #3b82f6;
             border: none;
             border-radius: 5px;
             text-decoration: none;
@@ -41,19 +42,18 @@
             margin-bottom: 20px;
         }
         .create-btn:hover {
-            background: #145b28;
+            background: #1e5bca;
         }
         .assignment-card {
             margin-bottom: 20px;
             padding: 20px;
             border-radius: 8px;
-            background: #f9f9f9;
+            background: rgba(255, 255, 255, 0.2);
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-            position: relative; /* To allow absolute positioning of the delete button */
         }
         .assignment-card h3 {
             margin: 0 0 10px;
-            color: #1f4037;
+            color: #000000;
         }
         .assignment-card p {
             margin: 5px 0;
@@ -73,26 +73,10 @@
             transition: background 0.3s ease;
         }
         .btn-primary {
-            background: #1f4037;
+            background: #3b82f6;
         }
         .btn-primary:hover {
-            background: #145b28;
-        }
-        .btn-danger {
-            background: #e74c3c; /* Red background */
-            position: absolute;
-            right: 20px;
-            top: 20px;
-        }
-        .btn-danger:hover {
-            background: #c0392b; /* Darker red when hovered */
-        }
-        .btn-secondary {
-            background: #3498db; /* Blue background for view button */
-            position: relative;
-        }
-        .btn-secondary:hover {
-            background: #2980b9; /* Darker blue when hovered */
+            background: #1e5bca;
         }
         .no-assignments {
             text-align: center;
@@ -100,9 +84,39 @@
             font-style: italic;
             margin-top: 20px;
         }
+        .btn-dashboard {
+            background: #3b82f6;
+            font-size: 12px; /* Smaller button */
+            padding: 8px 12px; /* Adjust padding for size */
+            position: absolute; /* Position it absolutely */
+            top: 20px; /* Distance from top */
+            left: 20px; /* Distance from left */
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .btn-dashboard:hover {
+            background: #218838;
+        }
+        .btn-danger {
+            background: red; /* Make it red */
+            float: right; /* Move it to the right */
+        }
+        .btn-danger:hover {
+            background: #b22222;
+        }
+        .btn-secondary {
+            background: #1e5bca;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background: #1a4c91; /* Darker blue on hover */
+        }
     </style>
 </head>
 <body>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
+        <i class="fas home"></i> Home
+    </a>
     <div class="container">
         <h1>Assignments</h1>
 

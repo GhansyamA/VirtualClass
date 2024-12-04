@@ -7,24 +7,29 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #f8b400, #ff7e5f);
-            color: #333;
+            font-family: Segoe UI;
+            background: linear-gradient(135deg, #fff, #3b82f6);
+            background-size: 200% 200%;
+            color: #000000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             margin: 0;
-            padding: 0;
+            animation: gradientMove 6s infinite ease-in-out;
         }
         .container {
+            width: 500px;
             max-width: 800px;
             margin: 40px auto;
             background: #fff;
             padding: 20px 30px;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 10px 4px 10px rgba(0, 0, 0, 0.1);
         }
         h1 {
             text-align: center;
-            color: #ff7e5f;
-            margin-bottom: 20px;
+            color: #3b82f6;
         }
         form {
             display: flex;
@@ -52,13 +57,13 @@
             padding: 10px 15px;
             border-radius: 5px;
             border: none;
-            background: #ff7e5f;
+            background: #3b82f6;
             color: #fff;
             cursor: pointer;
             transition: background 0.3s ease;
         }
         button:hover {
-            background: #ff4c33;
+            background: #145b28;
         }
         .back-link {
             text-align: center;
@@ -66,25 +71,44 @@
         }
         .back-link a {
             font-size: 16px;
-            color: #ff7e5f;
+            color: #3b82f6;
             text-decoration: none;
         }
         .back-link a:hover {
             text-decoration: underline;
         }
+        .btn-dashboard {
+            background: #3b82f6;
+            font-size: 12px; /* Smaller button */
+            padding: 8px 12px; /* Adjust padding for size */
+            position: absolute; /* Position it absolutely */
+            top: 20px; /* Distance from top */
+            left: 20px; /* Distance from left */
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .btn-dashboard:hover {
+            background: #218838;
+        }
     </style>
 </head>
 <body>
+    <!-- Dashboard Button -->
+    <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
+        <i class="fas home"></i> Home
+    </a>
     <div class="container">
         <h1>Create Assignment</h1>
         <form method="POST">
             {{ form.hidden_tag() }}
+            <label for="title">{{ form.title.label }}</label>
             <div class="form-group">
-                <label for="title">{{ form.title.label }}</label>
+                
                 {{ form.title(class="form-control") }}
             </div>
+            <label for="description">{{ form.description.label }}</label>
             <div class="form-group">
-                <label for="description">{{ form.description.label }}</label>
+                
                 {{ form.description(class="form-control") }}
             </div>
             <div class="form-group">

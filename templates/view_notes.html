@@ -7,23 +7,25 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #1f4037, #99f2c8);
-            color: #333;
+            font-family: Segoe UI;
+            background: linear-gradient(135deg, #fff, #3b82f6);
+            color: #000000;
             margin: 0;
             padding: 0;
+            animation: gradientMove 6s infinite ease-in-out;
+            height: 100vh;
         }
         .container {
             max-width: 900px;
             margin: 40px auto;
-            background: #fff;
+            background: rgba(255, 255, 255, 0.5);
             padding: 20px 30px;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
         }
         h1 {
             text-align: center;
-            color: #1f4037;
+            color: #000000;
             margin-bottom: 30px;
         }
         .upload-btn {
@@ -32,7 +34,7 @@
             font-size: 14px;
             font-weight: bold;
             color: #fff;
-            background: #1f4037;
+            background: #3b82f6;
             border: none;
             border-radius: 5px;
             text-decoration: none;
@@ -41,17 +43,17 @@
             margin-bottom: 20px;
         }
         .upload-btn:hover {
-            background: #145b28;
+            background: #1e5bca;
         }
         ul {
             list-style: none;
             padding: 0;
         }
         ul li {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             padding: 15px;
             border-radius: 8px;
-            background: #f9f9f9;
+            background: rgba(255, 255, 255, 0.2);
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
@@ -59,11 +61,12 @@
         }
         ul li a {
             text-decoration: none;
-            color: #1f4037;
+            color: #000000;
             font-weight: bold;
+            transition: color 0.3s ease;
         }
         ul li a:hover {
-            color: #99f2c8;
+            color: #3b82f6;
         }
         .note-meta {
             font-size: 12px;
@@ -72,7 +75,7 @@
         }
         .icon {
             margin-right: 10px;
-            color: #1f4037;
+            color: #000000;
         }
         .no-notes {
             text-align: center;
@@ -80,47 +83,52 @@
             font-style: italic;
             margin-top: 20px;
         }
-        .delete-btn {
-            color: #ff0000;
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
+        .btn-dashboard {
+            background: #3b82f6;
+            font-size: 12px; /* Smaller button */
+            padding: 8px 12px; /* Adjust padding for size */
+            position: absolute; /* Position it absolutely */
+            top: 20px; /* Distance from top */
+            left: 20px; /* Distance from left */
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .btn-dashboard:hover {
+            background: #218838;
         }
     </style>
 </head>
 <body>
+    <!-- Dashboard Button -->
+    <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
+        <i class="fas home"></i> Home
+    </a>
     <div class="container">
         <h1>Notes</h1>
-{% if current_user.role == 'teacher' %}
-    <a href="{{ url_for('upload_notes') }}" class="upload-btn"><i class="fas fa-upload"></i> Upload Notes</a>
-{% endif %}
-{% if notes %}
-    <ul>
-    {% for note in notes %}
-        <li>
-            <div>
-                <i class="fas fa-file-alt icon"></i>
-                <a href="{{ note.file_url }}" target="_blank">{{ note.filename }}</a>
-                <div class="note-meta">
-                    Uploaded by: {{ note.teacher_id }} on {{ note.uploaded_at }}
+        {% if current_user.role == 'teacher' %}
+        <a href="{{ url_for('upload_notes') }}" class="upload-btn"><i class="fas fa-upload"></i> Upload Notes</a>
+        {% endif %}
+        {% if notes %}
+        <ul>
+            {% for note in notes %}
+            <li>
+                <div>
+                    <i class="fas fa-file-alt icon"></i>
+                    <a href="{{ note.file_url }}" target="_blank">{{ note.filename }}</a>
+                    <div class="note-meta">
+                        Uploaded by: {{ note.teacher_id }} on {{ note.uploaded_at }}
+                    </div>
                 </div>
-            </div>
-            {% if current_user.role == 'teacher' %}
-                <form action="{{ url_for('delete_note', note_id=note.id) }}" method="POST" style="display:inline;">
-                    <button type="submit" class="delete-btn"><i class="fas fa-trash"></i> Delete</button>
-                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+            {% if flag == 0 %}
+            <p class="no-notes">Not enrolled to any courses</p>
+            {% else %}
+            <p class="no-notes">No notes uploaded yet.</p>
             {% endif %}
-        </li>
-    {% endfor %}
-    </ul>
-{% else %}
-    {% if flag == 0 %}
-        <p class="no-notes">Not enrolled to any courses</p>
-    {% else %}
-        <p class="no-notes">No notes uploaded yet.</p>
-    {% endif %}
-{% endif %}
+        {% endif %}
     </div>
 </body>
 </html>

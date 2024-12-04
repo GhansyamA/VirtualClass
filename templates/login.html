@@ -6,37 +6,57 @@
     <title>Login</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
-            color: #fff;
+            font-family: Segoe UI;
+            background: linear-gradient(135deg, #fff, #3b82f6);
+            background-size: 200% 200%;
+            color: #000000;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
+            animation: gradientMove 6s infinite ease-in-out;
         }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
         .login-container {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.5);
             padding: 20px 30px;
             border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
             width: 100%;
             max-width: 400px;
+            animation: fadeIn 1s ease-in-out;
         }
+
         .login-container h1 {
             text-align: center;
             margin-bottom: 20px;
-            color: #fff;
+            color: #000000;
         }
+
         .form-group {
             margin-bottom: 15px;
         }
+
         .form-group label {
             display: block;
             font-size: 14px;
-            color: #ddd;
+            color: #000000;
             margin-bottom: 5px;
         }
+
         .form-group input {
             width: 100%;
             padding: 10px;
@@ -44,67 +64,64 @@
             border: 1px solid #ddd;
             border-radius: 5px;
             background: rgba(255, 255, 255, 0.2);
-            color: #fff;
+            color: #000000;
+            transition: all 0.3s ease;
         }
+
         .form-group input:focus {
             outline: none;
-            border-color: #2575fc;
-            box-shadow: 0 0 5px #2575fc;
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px #3b82f6;
         }
+
         .btn-submit {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             font-size: 16px;
             font-weight: bold;
-            background: #2575fc;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             border: none;
             border-radius: 5px;
             color: #fff;
             cursor: pointer;
-            transition: background 0.3s ease;
+            transition: transform 0.2s, background 0.3s ease;
         }
+
         .btn-submit:hover {
-            background: #1e5bca;
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            transform: translateY(-2px);
         }
+
         .text-link {
             text-align: center;
             margin-top: 10px;
         }
+
         .text-link a {
-            color: #6a11cb;
+            color: #000000;
             text-decoration: none;
             font-weight: bold;
         }
+
         .text-link a:hover {
             text-decoration: underline;
         }
-        .alert {
-            padding: 10px;
-            margin-bottom: 20px;
-            background-color: #f8d7da;
-            color: #721c24;
-            border-radius: 5px;
-            border: 1px solid #f5c6cb;
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
         <h1>Login</h1>
-        
-        <!-- Display Flash Message -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="alert">
-                    <ul>
-                        {% for category, message in messages %}
-                            <li>{{ message }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-        {% endwith %}
-        
         <form method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
