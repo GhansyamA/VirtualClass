@@ -69,11 +69,11 @@
         }
         .btn-dashboard {
             background: #3b82f6;
-            font-size: 12px; /* Smaller button */
-            padding: 8px 12px; /* Adjust padding for size */
-            position: absolute; /* Position it absolutely */
-            top: 20px; /* Distance from top */
-            left: 20px; /* Distance from left */
+            font-size: 12px;
+            padding: 8px 12px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
             border-radius: 5px;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
@@ -81,8 +81,8 @@
             background: #218838;
         }
         .btn-danger {
-            background: red; /* Make it red */
-            float: right; /* Move it to the right */
+            background: red;
+            float: right;
         }
         .btn-danger:hover {
             background: #b22222;
@@ -92,15 +92,39 @@
             color: #fff;
         }
         .btn-secondary:hover {
-            background: #1a4c91; /* Darker blue on hover */
+            background: #1a4c91;
+        }
+        .alert {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            color: #fff;
+        }
+        .alert-success {
+            background: #28a745;
+        }
+        .alert-warning {
+            background: #ffc107;
+        }
+        .alert-danger {
+            background: #dc3545;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Available Courses</h1>
+
+        <!-- Flash Messages -->
+        {% if session['flash_message'] %}
+        <div class="alert alert-{{ session['flash_message'][1] }}">
+            {{ session['flash_message'][0] }}
+        </div>
+        {% set _ = session.pop('flash_message', None) %}
+        {% endif %}
+
         <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
-            <i class="fas home"></i> Home
+            <i class="fas fa-home"></i> Home
         </a>
         {% if available_courses %}
         <form method="POST">

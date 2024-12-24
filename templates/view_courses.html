@@ -106,7 +106,7 @@
         <i class="fas home"></i> Home
     </a>
 
-    <div class="container">
+    <div class="container"><br><br><br>
         <h1>Available Courses</h1>
         {% if current_user.role == 'teacher' %}
         <a href="{{ url_for('create_course') }}" class="btn btn-create-course">
