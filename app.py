@@ -269,100 +269,96 @@ def delete_course(course_id):
 @login_required
 def available_courses():
     if current_user.role != 'student':
-        flash('Only students can request enrollment in courses.', 'danger')
+        flash('Only students can enroll in courses.', 'danger')
         return redirect(url_for('dashboard'))
-    enrolled_courses = [enrollment['course_id'] for enrollment in current_user.enrollments]
-    query = supabase.table('course').select('*')
-    response = query.execute()
-    if response and response.data:
-        available_courses = response.data
-        if request.method == 'POST':
-            course_id = request.form.get('course_id')
-            if course_id:
-                try:
-                    if int(course_id) in enrolled_courses:
-                        session['flash_message'] = ('You are already enrolled in this course.', 'warning')
-                    else:
-                        enrollment_request = {
-                            'student_id': current_user.id,
-                            'course_id': course_id
-                        }
-                        request_response = supabase.table('enrollment_request').insert([enrollment_request]).execute()
-                        session['flash_message'] = ('Enrollment request submitted successfully!', 'success')
-                except Exception as e:
-                    session['flash_message'] = (f"Error submitting request: {str(e)}", 'danger')
-        return render_template('available_courses.html', available_courses=available_courses, enrolled_courses=enrolled_courses)
-    else:
-        session['flash_message'] = ('No available courses to request.', 'danger')
+
+    try:
+        # Fetch enrolled courses
+        enrolled_response = supabase.table('enrollment').select('course_id')\
+            .eq('student_id', current_user.id).execute()
+        enrolled_courses = [enrollment['course_id'] for enrollment in enrolled_response.data]
+
+        # Fetch pending requests
+        pending_response = supabase.table('enrollment_request').select('course_id')\
+            .eq('student_id', current_user.id).execute()
+        pending_requests = [req['course_id'] for req in pending_response.data]
+
+        # Fetch all available courses
+        query = supabase.table('course').select('*')
+        response = query.execute()
+        available_courses = response.data if response else []
+
+        # Pass data to template
+        return render_template('available_courses.html',
+                               available_courses=available_courses,
+                               enrolled_courses=enrolled_courses,
+                               pending_requests=pending_requests)
+    except Exception as e:
+        flash(f"Error loading courses: {str(e)}", "danger")
         return redirect(url_for('dashboard'))
+
     
 @app.route('/view_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def view_course(course_id):
     # Fetch course details
     course_response = supabase.table('course').select('*').eq('id', course_id).execute()
-    if course_response and course_response.data:
-        course = course_response.data[0]
-    else:
+    if not course_response or not course_response.data:
         flash("Course not found.", "danger")
         return redirect(url_for('view_courses'))
+    course = course_response.data[0]
+
+    # Fetch enrollment requests
+    requests_response = supabase.table('enrollment_request').select('*').eq('course_id', course_id).execute()
+    enrollment_requests = []
+    if requests_response and requests_response.data:
+        student_ids = [req['student_id'] for req in requests_response.data]
+        students_response = supabase.table('user').select('*').in_('id', student_ids).execute()
+        student_data = {s['id']: s for s in students_response.data}
+        enrollment_requests = [{'id': req['id'], 'student': student_data[req['student_id']]} for req in requests_response.data]
 
     # Fetch enrolled students
-    enrollment_response = supabase.table('enrollment').select('student_id').eq('course_id', course_id).execute()
+    enrolled_response = supabase.table('enrollment').select('student_id')\
+        .eq('course_id', course_id).execute()
     enrolled_students = []
-    enrolled_student_ids = []
-    if enrollment_response and enrollment_response.data:
-        enrolled_student_ids = [e['student_id'] for e in enrollment_response.data]
-        student_response = supabase.table('user').select('*').in_('id', enrolled_student_ids).execute()
-        if student_response and student_response.data:
-            enrolled_students = student_response.data
+    if enrolled_response and enrolled_response.data:
+        student_ids = [enrollment['student_id'] for enrollment in enrolled_response.data]
+        students_response = supabase.table('user').select('*').in_('id', student_ids).execute()
+        enrolled_students = students_response.data if students_response.data else []
 
-    # Handle enrollment requests (only for teachers)
-    enrollment_requests = []
-    if current_user.role == 'teacher':
-        if request.method == 'POST':
-            # Process approval or rejection
-            action = request.form.get('action')
-            if action:
-                action_type, request_id = action.split('_')
-                request_response = supabase.table('enrollment_request').select('*').eq('id', request_id).execute()
-                if request_response and request_response.data:
-                    enrollment_request = request_response.data[0]
-                    if action_type == 'approve':
-                        # Approve request
-                        enrollment = {
-                            'student_id': enrollment_request['student_id'],
-                            'course_id': enrollment_request['course_id']
-                        }
-                        supabase.table('enrollment').insert([enrollment]).execute()
-                        supabase.table('enrollment_request').delete().eq('id', request_id).execute()
-                        flash('Enrollment request approved.', 'success')
-                    elif action_type == 'reject':
-                        # Reject request
-                        supabase.table('enrollment_request').delete().eq('id', request_id).execute()
-                        flash('Enrollment request rejected.', 'warning')
-                else:
-                    flash('Invalid request.', 'danger')
+    return render_template('view_course.html',
+                           course=course,
+                           enrollment_requests=enrollment_requests,
+                           enrolled_students=enrolled_students)
 
-        # Fetch pending enrollment requests
-        request_response = supabase.table('enrollment_request').select('id, student_id').eq('course_id', course_id).execute()
-        if request_response and request_response.data:
-            for req in request_response.data:
-                student_response = supabase.table('user').select('*').eq('id', req['student_id']).execute()
-                if student_response and student_response.data:
-                    enrollment_requests.append({
-                        'id': req['id'],
-                        'student': student_response.data[0]
-                    })
+@app.route('/request_enrollment/<int:course_id>', methods=['POST'])
+@login_required
+def request_enrollment(course_id):
+    if current_user.role != 'student':
+        return jsonify({"success": False, "message": "Only students can request enrollment."}), 403
+    try:
+        # Check if already enrolled
+        enrolled_response = supabase.table('enrollment').select('*')\
+            .eq('student_id', current_user.id).eq('course_id', course_id).execute()
+        if enrolled_response.data:
+            return jsonify({"success": False, "message": "Already enrolled."}), 400
 
-    # Render the template with all data
-    return render_template(
-        'view_course.html',
-        course=course,
-        enrolled_students=enrolled_students,
-        enrolled_student_ids=enrolled_student_ids,
-        enrollment_requests=enrollment_requests
-    )
+        # Check if a request is already pending
+        pending_response = supabase.table('enrollment_request').select('*')\
+            .eq('student_id', current_user.id).eq('course_id', course_id).execute()
+        if pending_response.data:
+            return jsonify({"success": False, "message": "Request already pending."}), 400
+
+        # Insert new request
+        request_data = {
+            'student_id': current_user.id,
+            'course_id': course_id
+        }
+        supabase.table('enrollment_request').insert([request_data]).execute()
+        return jsonify({"success": True, "message": "Enrollment request sent."})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 
 @app.route('/process_request/<int:request_id>/<action>', methods=['POST'])
 @login_required

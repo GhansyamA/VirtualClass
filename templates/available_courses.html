@@ -123,29 +123,52 @@
         <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
             <i class="fas fa-home"></i> Home
         </a>
+    
         {% if available_courses %}
-        <form method="POST">
-            <ul>
-                {% for course in available_courses %}
-                <li>
-                    <div>
-                        <strong>{{ course.name }}</strong>
-                        <p>{{ course.description }}</p>
-                    </div>
-                    {% if course.id not in enrolled_courses %}
-                    <button type="submit" name="course_id" value="{{ course.id }}" class="btn btn-primary">
+        <ul>
+            {% for course in available_courses %}
+            <li>
+                <div>
+                    <strong>{{ course.name }}</strong>
+                    <p>{{ course.description }}</p>
+                </div>
+        
+                <!-- Dynamic Button -->
+                {% if course.id in enrolled_courses %}
+                    <span class="badge badge-success">Enrolled</span>
+                {% elif course.id in pending_requests %}
+                    <span class="badge badge-warning">Pending</span>
+                {% else %}
+                    <button type="button" class="btn btn-primary" onclick="requestEnrollment({{ course.id }})">
                         Request Enrollment
-                    </button>                    
-                    {% else %}
-                        <span class="enrolled-badge">Enrolled</span>
-                    {% endif %}
-                </li>
-                {% endfor %}
-            </ul>
-        </form>
+                    </button>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        
         {% else %}
-            <p>No available courses to enroll in.</p>
+        <p>No available courses to enroll in.</p>
         {% endif %}
     </div>
+    
+    <!-- JavaScript for AJAX Enrollment Request -->
+    <script>
+        function requestEnrollment(courseId) {
+            fetch(`/request_enrollment/${courseId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload(); // Refresh page to update button status
+                } else {
+                    alert(data.message); // Show error message
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>    
 </body>
 </html>
