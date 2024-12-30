@@ -58,14 +58,20 @@
         .btn-primary:hover {
             background: #1e5bca;
         }
-        .enrolled-badge {
+        .enrolled-badge, .pending-badge {
             padding: 8px 12px;
             font-size: 14px;
             font-weight: bold;
             color: #fff;
-            background: #6c757d;
             border-radius: 5px;
             cursor: default;
+        }
+        .enrolled-badge {
+            background: #28a745;
+        }
+        .pending-badge {
+            background: #ffc107;
+            color: #333;
         }
         .btn-dashboard {
             background: #3b82f6;
@@ -123,7 +129,6 @@
         <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
             <i class="fas fa-home"></i> Home
         </a>
-    
         {% if available_courses %}
         <ul>
             {% for course in available_courses %}
@@ -132,12 +137,10 @@
                     <strong>{{ course.name }}</strong>
                     <p>{{ course.description }}</p>
                 </div>
-        
-                <!-- Dynamic Button -->
                 {% if course.id in enrolled_courses %}
-                    <span class="badge badge-success">Enrolled</span>
+                    <span class="enrolled-badge">Enrolled</span>
                 {% elif course.id in pending_requests %}
-                    <span class="badge badge-warning">Pending</span>
+                    <span class="pending-badge">Pending</span>
                 {% else %}
                     <button type="button" class="btn btn-primary" onclick="requestEnrollment({{ course.id }})">
                         Request Enrollment
@@ -146,13 +149,10 @@
             </li>
             {% endfor %}
         </ul>
-        
         {% else %}
         <p>No available courses to enroll in.</p>
         {% endif %}
     </div>
-    
-    <!-- JavaScript for AJAX Enrollment Request -->
     <script>
         function requestEnrollment(courseId) {
             fetch(`/request_enrollment/${courseId}`, {
@@ -162,9 +162,9 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    location.reload(); // Refresh page to update button status
+                    location.reload();
                 } else {
-                    alert(data.message); // Show error message
+                    alert(data.message);
                 }
             })
             .catch(error => console.error('Error:', error));
