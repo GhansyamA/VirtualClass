@@ -114,15 +114,12 @@
 <body>
     <div class="container">
         <h1>Available Courses</h1>
-
-        <!-- Flash Messages -->
         {% if session['flash_message'] %}
         <div class="alert alert-{{ session['flash_message'][1] }}">
             {{ session['flash_message'][0] }}
         </div>
         {% set _ = session.pop('flash_message', None) %}
         {% endif %}
-
         <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
             <i class="fas fa-home"></i> Home
         </a>
@@ -136,7 +133,9 @@
                         <p>{{ course.description }}</p>
                     </div>
                     {% if course.id not in enrolled_courses %}
-                        <button type="submit" name="course_id" value="{{ course.id }}" class="btn btn-primary">Enroll</button>
+                    <button type="submit" name="course_id" value="{{ course.id }}" class="btn btn-primary">
+                        Request Enrollment
+                    </button>                    
                     {% else %}
                         <span class="enrolled-badge">Enrolled</span>
                     {% endif %}

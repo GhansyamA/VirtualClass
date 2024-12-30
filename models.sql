@@ -65,3 +65,13 @@ CREATE TABLE enrollment (
     FOREIGN KEY (course_id) REFERENCES course(id),
     UNIQUE (student_id, course_id)
 );
+
+CREATE TABLE enrollment_request (
+    id SERIAL PRIMARY KEY,
+    student_id INTEGER NOT NULL,
+    course_id INTEGER NOT NULL,
+    request_status VARCHAR(50) DEFAULT 'pending',
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES "user"(id),
+    FOREIGN KEY (course_id) REFERENCES course(id)
+);
