@@ -110,25 +110,26 @@
         <div class="course-details">
             <h1>Course: {{ course.name }}</h1>
             <p><strong>Description:</strong> {{ course.description }}</p>
-            {% if current_user.role == 'teacher' %}
-    <h3>Enrollment Requests</h3>
-    {% if enrollment_requests %}
-        <ul>
-            {% for request in enrollment_requests %}
-                <li>
-                    <strong>{{ request.student.username }}</strong>
-                    <form method="POST">
-                        <button type="submit" name="action" value="approve_{{ request.id }}" class="btn btn-success">Approve</button>
-                        <button type="submit" name="action" value="reject_{{ request.id }}" class="btn btn-danger">Reject</button>
-                    </form>
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No enrollment requests.</p>
-    {% endif %}
-{% endif %}
 
+            {% if current_user.role == 'teacher' %}
+                <!-- Enrollment Requests -->
+                <h3>Enrollment Requests</h3>
+                {% if enrollment_requests %}
+                    <ul id="enrollment-requests">
+                        {% for request in enrollment_requests %}
+                            <li id="request-{{ request.id }}">
+                                <strong>{{ request.student.username }}</strong>
+                                <button onclick="processRequest({{ request.id }}, 'approve')" class="btn btn-success">Approve</button>
+                                <button onclick="processRequest({{ request.id }}, 'reject')" class="btn btn-danger">Reject</button>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No enrollment requests.</p>
+                {% endif %}
+            {% endif %}
+
+            <!-- Enrolled Students -->
             {% if current_user.role == 'teacher' %}
                 <h3>Enrolled Students</h3>
                 {% if enrolled_students %}
@@ -168,5 +169,28 @@
             <a href="{{ url_for('view_courses') }}"><i class="fas fa-arrow-left"></i> Back to Courses</a>
         </div>
     </div>
+
+    <!-- JavaScript for AJAX -->
+    <script>
+        function processRequest(requestId, action) {
+            fetch(`/process_request/${requestId}/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove the request from the list
+                    document.getElementById(`request-${requestId}`).remove();
+                    location.reload(); // Refresh the page
+                } else {
+                    alert(data.message); // Show error message
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 </body>
 </html>

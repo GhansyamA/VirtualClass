@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, session
+from flask import Flask, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User
@@ -363,6 +363,36 @@ def view_course(course_id):
         enrolled_student_ids=enrolled_student_ids,
         enrollment_requests=enrollment_requests
     )
+
+@app.route('/process_request/<int:request_id>/<action>', methods=['POST'])
+@login_required
+def process_request(request_id, action):
+    if current_user.role != 'teacher':
+        return jsonify({"success": False, "message": "Unauthorized action"}), 403
+    try:
+        # Fetch the request
+        request_response = supabase.table('enrollment_request').select('*').eq('id', request_id).execute()
+        if not request_response or not request_response.data:
+            return jsonify({"success": False, "message": "Request not found"}), 404
+        enrollment_request = request_response.data[0]
+
+        if action == 'approve':
+            # Approve request and add to enrollment
+            enrollment = {
+                'student_id': enrollment_request['student_id'],
+                'course_id': enrollment_request['course_id']
+            }
+            supabase.table('enrollment').insert([enrollment]).execute()
+            supabase.table('enrollment_request').delete().eq('id', request_id).execute()
+            return jsonify({"success": True, "message": "Request approved"})
+        elif action == 'reject':
+            # Reject request
+            supabase.table('enrollment_request').delete().eq('id', request_id).execute()
+            return jsonify({"success": True, "message": "Request rejected"})
+        else:
+            return jsonify({"success": False, "message": "Invalid action"}), 400
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
 
 '''
 @app.route('/enroll_course/<int:course_id>', methods=['GET', 'POST'])
