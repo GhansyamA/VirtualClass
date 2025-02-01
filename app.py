@@ -297,7 +297,6 @@ def available_courses():
         flash(f"Error loading courses: {str(e)}", "danger")
         return redirect(url_for('dashboard'))
 
-    
 @app.route('/view_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def view_course(course_id):
@@ -359,7 +358,6 @@ def request_enrollment(course_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-
 @app.route('/process_request/<int:request_id>/<action>', methods=['POST'])
 @login_required
 def process_request(request_id, action):
@@ -390,31 +388,6 @@ def process_request(request_id, action):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-'''
-@app.route('/enroll_course/<int:course_id>', methods=['GET', 'POST'])
-@login_required
-def enroll_course(course_id):
-    if current_user.role != 'student':
-        session['flash_message'] = ('Only students can enroll in courses.', 'danger')
-        return redirect(url_for('dashboard'))
-    try:
-        response = supabase.table('enrollments').select('*').eq('student_id', current_user.id).eq('course_id', course_id).execute()
-        if response and len(response.json()) > 0:
-            session['flash_message'] = ('You are already enrolled in this course.', 'warning')
-            return redirect(request.referrer)
-        enrollment = {
-            'student_id': current_user.id,
-            'course_id': course_id
-        }
-        response = supabase.table('enrollments').insert([enrollment]).execute()
-        session['flash_message'] = ('You have successfully enrolled in the course!', 'success')
-    except Exception as e:
-        if '23505' in str(e):
-            session['flash_message'] = ('You are already enrolled in this course.', 'warning')
-        else:
-            session['flash_message'] = (f"Error: {str(e)}", 'danger')
-    return redirect(request.referrer)
-'''
 @app.route('/unenroll/<int:course_id>', methods=['POST'])
 @login_required
 def unenroll(course_id):

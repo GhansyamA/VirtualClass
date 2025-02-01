@@ -149,11 +149,8 @@
                 </div>
             {% endif %}
         {% endwith %}
-        
-        <!-- Assignment creation form -->
         <form method="POST">
             {{ form.hidden_tag() }}
-            
             <label for="title">{{ form.title.label }}</label>
             <div class="form-group">
                 {{ form.title(class="form-control") }}
@@ -165,7 +162,6 @@
                     </div>
                 {% endif %}
             </div>
-
             <label for="description">{{ form.description.label }}</label>
             <div class="form-group">
                 {{ form.description(class="form-control") }}
@@ -177,7 +173,6 @@
                     </div>
                 {% endif %}
             </div>
-
             <label for="due_date">{{ form.due_date.label }}</label>
             <div class="form-group">
                 <input type="datetime-local" id="due_date" name="due_date" class="form-control" value="{{ formatted_due_date }}">
@@ -189,12 +184,10 @@
                     </div>
                 {% endif %}
             </div>
-
             <button type="submit" class="btn-submit">
                 <i class="fas fa-save"></i> Create Assignment
             </button>
         </form>
-
         <div class="back-link">
             <a href="{{ url_for('view_assignments') }}"><i class="fas fa-arrow-left"></i> Back to Assignments</a>
         </div>
