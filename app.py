@@ -94,25 +94,95 @@ def dashboard():
         selected_course_id = session.get('selected_course_id')
         if not selected_course_id:
             return redirect(url_for('select_course'))
+
         response = supabase.table('course').select('*').eq('id', selected_course_id).execute()
         current_course = response.data[0] if response else None
         if not current_course or current_course['teacher_id'] != current_user.id:
             return redirect(url_for('select_course'))
+
+        # Fetch Active Meetings
         response = supabase.table('active_meeting').select('*').eq('teacher_id', current_user.id).execute()
         active_meetings = response.data if response else []
-        return render_template('dashboard.html', current_course=current_course, active_meetings=active_meetings)
+
+        # Fetch Enrolled Students
+        enrollments = supabase.table('enrollment').select('student_id').eq('course_id', selected_course_id).execute()
+        student_ids = [e['student_id'] for e in enrollments.data] if enrollments.data else []
+
+        leaderboard = []
+        if student_ids:
+            students_response = supabase.table('user').select('id', 'username').in_('id', student_ids).execute()
+            students = {s['id']: s['username'] for s in students_response.data} if students_response.data else {}
+
+            # Get Assignments for the Selected Course
+            assignments_response = supabase.table('assignment').select('id').eq('course_id', selected_course_id).execute()
+            assignment_ids = [a['id'] for a in assignments_response.data] if assignments_response.data else []
+
+            # Get Marks Only for Assignments in the Selected Course
+            submissions_response = supabase.table('submission')\
+                .select('student_id', 'marks', 'assignment_id')\
+                .in_('assignment_id', assignment_ids).execute()
+
+            student_marks = {student_id: 0 for student_id in student_ids}
+            if submissions_response.data:
+                for submission in submissions_response.data:
+                    if submission['marks'] is not None:
+                        student_marks[submission['student_id']] += submission['marks']
+
+            # Build Leaderboard Data
+            for student_id in student_ids:
+                leaderboard.append({
+                    'student_id': student_id,
+                    'username': students.get(student_id, 'Unknown'),
+                    'total_marks': student_marks[student_id]
+                })
+
+            # Sort Leaderboard by Total Marks
+            leaderboard.sort(key=lambda x: x['total_marks'], reverse=True)
+
+        return render_template('dashboard.html', current_course=current_course, active_meetings=active_meetings, leaderboard=leaderboard)
+
     else:
         response = supabase.table('enrollment').select('course_id').eq('student_id', current_user.id).execute()
-        if response and response.data:
-            enrolled_courses_ids = [enrollment['course_id'] for enrollment in response.data]
-            courses_response = supabase.table('course').select('*').in_('id', enrolled_courses_ids).execute()
-            enrolled_courses = courses_response.data if courses_response else []
-        else:
-            enrolled_courses = []
-        enrolled_courses_ids = [course['id'] for course in enrolled_courses]
+        enrolled_courses_ids = [enrollment['course_id'] for enrollment in response.data] if response.data else []
+
+        enrolled_courses = supabase.table('course').select('*').in_('id', enrolled_courses_ids).execute().data if enrolled_courses_ids else []
+
         response = supabase.table('active_meeting').select('*').in_('course_id', enrolled_courses_ids).execute()
         active_meetings = response.data if response else []
-        return render_template('dashboard.html', enrolled_courses=enrolled_courses, active_meetings=active_meetings)
+
+        # Fetch Leaderboard Data Only for the First Enrolled Course (Can be Modified to Allow Selection)
+        leaderboard = []
+        if enrolled_courses_ids:
+            selected_course_id = enrolled_courses_ids[0]  # Choose the first enrolled course
+
+            # Get Assignments for the Selected Course
+            assignments_response = supabase.table('assignment').select('id').eq('course_id', selected_course_id).execute()
+            assignment_ids = [a['id'] for a in assignments_response.data] if assignments_response.data else []
+
+            submissions_response = supabase.table('submission')\
+                .select('student_id', 'marks', 'assignment_id')\
+                .in_('assignment_id', assignment_ids).execute()
+
+            student_marks = {}
+            if submissions_response.data:
+                for submission in submissions_response.data:
+                    if submission['marks'] is not None:
+                        student_marks[submission['student_id']] = student_marks.get(submission['student_id'], 0) + submission['marks']
+
+            students_response = supabase.table('user').select('id', 'username').execute()
+            students = {s['id']: s['username'] for s in students_response.data} if students_response.data else {}
+
+            for student_id in student_marks:
+                leaderboard.append({
+                    'student_id': student_id,
+                    'username': students.get(student_id, 'Unknown'),
+                    'total_marks': student_marks.get(student_id, 0)
+                })
+
+            leaderboard.sort(key=lambda x: x['total_marks'], reverse=True)
+
+        return render_template('dashboard.html', enrolled_courses=enrolled_courses, active_meetings=active_meetings, leaderboard=leaderboard)
+
 
 @app.route('/start_meeting', methods=['POST'])
 @login_required
@@ -306,7 +376,6 @@ def view_course(course_id):
         flash("Course not found.", "danger")
         return redirect(url_for('view_courses'))
     course = course_response.data[0]
-
     # Fetch enrollment requests
     requests_response = supabase.table('enrollment_request').select('*').eq('course_id', course_id).execute()
     enrollment_requests = []
@@ -315,7 +384,6 @@ def view_course(course_id):
         students_response = supabase.table('user').select('*').in_('id', student_ids).execute()
         student_data = {s['id']: s for s in students_response.data}
         enrollment_requests = [{'id': req['id'], 'student': student_data[req['student_id']]} for req in requests_response.data]
-
     # Fetch enrolled students
     enrolled_response = supabase.table('enrollment').select('student_id')\
         .eq('course_id', course_id).execute()

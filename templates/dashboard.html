@@ -18,32 +18,46 @@
             margin: 0;
             animation: gradientMove 6s infinite ease-in-out;
         }
+
+        .dashboard-wrapper {
+            display: flex;
+            justify-content: center; /* Center the content */
+            align-items: flex-start;
+            gap: 20px;
+            width: 90%;
+            max-width: 1200px;
+        }
+
         .container {
-            width:500px;
+            flex: 1;
             max-width: 800px;
-            margin: 40px auto;
             background: #fff;
             padding: 20px 30px;
             border-radius: 10px;
             box-shadow: 10px 4px 10px rgba(0, 0, 0, 0.1);
         }
+
         h1 {
             text-align: center;
             color: #3b82f6;
         }
+
         h2 {
-            font-size: 18px; /* You can adjust this value to your preference */
+            font-size: 18px;
         }
+
         ul {
             list-style-type: none;
             padding: 0;
             margin: 20px 0;
         }
+
         ul li {
             margin-bottom: 15px;
             display: flex;
             align-items: center;
         }
+
         ul li a {
             text-decoration: none;
             color: #1f4037;
@@ -51,21 +65,56 @@
             margin-left: 10px;
             transition: color 0.3s ease;
         }
+
         ul li a:hover {
             color: #99f2c8;
         }
-        ul li .badge {
-            margin-left: auto;
-            padding: 3px 7px;
-            font-size: 12px;
+
+        .logout {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .logout a {
+            color: #dc3545;
+            text-decoration: none;
             font-weight: bold;
-            color: #fff;
-            border-radius: 5px;
-            background: #28a745;
         }
-        .section {
-            margin-top: 20px;
+
+        .logout a:hover {
+            text-decoration: underline;
         }
+
+        .leaderboard-container {
+            width: 300px; 
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .leaderboard-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-container th,
+        .leaderboard-container td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .leaderboard-container th {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .leaderboard-container tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+
+        /* Original button styles */
         .btn {
             display: inline-block;
             padding: 10px 15px;
@@ -79,177 +128,200 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
+
         .btn-primary {
             background: #3b82f6;
         }
+
         .btn-primary:hover {
             background: #145b28;
         }
+
         .btn-success {
             background: #28a745;
         }
+
         .btn-success:hover {
             background: #218838;
         }
+
         .btn-danger {
             background: #dc3545;
         }
+
         .btn-danger:hover {
             background: #c82333;
         }
-        .logout {
+
+        /* Enrolled courses section styles */
+        .course-container {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 10px;
+            justify-content: flex-start;
+            overflow-x: auto;
+            padding: 10px;
+            max-width: 100%;
+        }
+
+        .course-card {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            width: 150px;
+            height: 100px;
             text-align: center;
-            margin-top: 30px;
+            font-size: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .logout a {
-            color: #dc3545;
-            text-decoration: none;
-            font-weight: bold;
+
+        .course-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
         }
-        .logout a:hover {
-            text-decoration: underline;
+
+        .course-card h4 {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        /* Container for course cards */
-.course-container {
-    display: flex;
-    flex-wrap: nowrap; /* No wrapping */
-    gap: 10px; /* Reduced spacing between cards */
-    justify-content: flex-start; /* Align cards to the left */
-    overflow-x: auto; /* Enable horizontal scrolling */
-    padding: 10px;
-    max-width: 100%; /* Limit to the screen width */
-}
 
-/* Individual course card */
-.course-card {
-    background: #f5f5f5;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 5px; /* Reduced padding */
-    width: 150px; /* Fixed smaller width */
-    height: 100px; /* Fixed smaller height */
-    text-align: center;
-    font-size: 12px; /* Smaller font */
-    transition: transform 0.2s, box-shadow 0.2s;
-}
+        .course-card button {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 10px;
+            background: #dc3545;
+            color: #fff;
+            padding: 3px 5px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
 
-/* Hover effect for cards */
-.course-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-}
-
-/* Course title */
-.course-card h4 {
-    font-size: 14px; /* Smaller title font */
-    margin-bottom: 5px; /* Reduced margin */
-    color: #333;
-    overflow: hidden; /* Prevent overflow of long titles */
-    text-overflow: ellipsis; /* Add ellipsis for long titles */
-    white-space: nowrap; /* Prevent wrapping */
-}
-
-/* Unenroll button */
-.course-card button {
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 10px; /* Smaller font for button */
-    background: #dc3545;
-    color: #fff;
-    padding: 3px 5px; /* Reduced padding */
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-.course-card button:hover {
-    background: #c82333;
-}
+        .course-card button:hover {
+            background: #c82333;
+        }
 
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Dashboard</h1>
-        <p>Welcome, {{current_user.username}}</p>
-        {% if current_user.role == 'teacher' %}
-        <h2>{{ current_course.name }}</h2>
-        {% endif %}
-        <ul>
+    <div class="dashboard-wrapper">
+        <div class="container">
+            <h1>Dashboard</h1>
+            <p>Welcome, {{ current_user.username }}</p>
+
             {% if current_user.role == 'teacher' %}
-            <li>
-                <i class="fas fa-exchange-alt"></i>
-                <a href="{{ url_for('select_course') }}" > Change Course </a>
-            </li>
+            <h2>{{ current_course.name }}</h2>
             {% endif %}
-            <li>
-                <i class="fas fa-sticky-note"></i>
-                <a href="{{ url_for('view_notes') }}"> Notes </a>
-            </li>
-            <li>
-                <i class="fas fa-tasks"></i>
-                <a href="{{ url_for('view_assignments') }}"> Assignments </a>
-            </li>
-            {% if current_user.role == 'teacher' %}
+
+            <ul>
+                {% if current_user.role == 'teacher' %}
+                <li>
+                    <i class="fas fa-exchange-alt"></i>
+                    <a href="{{ url_for('select_course') }}"> Change Course </a>
+                </li>
+                {% endif %}
+                <li>
+                    <i class="fas fa-sticky-note"></i>
+                    <a href="{{ url_for('view_notes') }}"> Notes </a>
+                </li>
+                <li>
+                    <i class="fas fa-tasks"></i>
+                    <a href="{{ url_for('view_assignments') }}"> Assignments </a>
+                </li>
+                {% if current_user.role == 'teacher' %}
                 <li>
                     <i class="fas fa-chalkboard-teacher"></i>
                     <a href="{{ url_for('view_courses') }}"> My Courses </a>
                 </li>
-            {% endif %}
-        </ul>
-        {% if current_user.role == 'student' %}
-    <h2>Enrolled Courses</h2>
-    <div class="course-container">
-        {% for course in enrolled_courses %}
-        <div class="course-card">
-            <h3>{{ course.name }}</h3>
-            <form action="{{ url_for('unenroll', course_id=course.id) }}" method="POST">
-                <button type="submit">Unenroll</button>
-            </form>
-        </div>
-        {% endfor %}
-    </div>
-    <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Explore Courses</a>
-{% endif %}
+                {% endif %}
+            </ul>
 
-        <div class="section">
             {% if current_user.role == 'student' %}
-            <h2>Active Meeting</h2>
-            {% if active_meetings %}
+            <h2>Enrolled Courses</h2>
+            <div class="course-container">
+                {% for course in enrolled_courses %}
+                <div class="course-card">
+                    <h4>{{ course.name }}</h4>
+                    <form action="{{ url_for('unenroll', course_id=course.id) }}" method="POST">
+                        <button type="submit">Unenroll</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Explore Courses</a>
+            {% endif %}
+
+            <div class="section">
+                {% if current_user.role == 'student' %}
+                <h2>Active Meeting</h2>
+                {% if active_meetings %}
                 <ul>
-                {% for meeting in active_meetings %}
+                    {% for meeting in active_meetings %}
                     <li>
                         <p>Room Name: {{ meeting.room_name }}</p>
-                        <a href="https://meet.jit.si/{{ meeting.room_name }}" target="_blank">Join Meeting</a>
+                        <a href="https://meet.jit.si/{{ meeting.room_name }}" target="_blank" class="btn btn-primary">Join Meeting</a>
                     </li>
-                {% endfor %}
+                    {% endfor %}
                 </ul>
-            {% else %}
+                {% else %}
                 <p>No active meetings for your courses.</p>
-            {% endif %}
-        {% else %}
-            {% if active_meetings %}
+                {% endif %}
+                {% else %}
+                {% if active_meetings %}
                 <div class="active-meeting">
                     <ul>
-                    {% for meeting in active_meetings %}
+                        {% for meeting in active_meetings %}
                         <li>
                             <p>Room Name: {{ meeting.room_name }}</p>
                             <a href="https://meet.jit.si/{{ meeting.room_name }}" target="_blank" class="btn btn-success">Join Meeting</a>
                             <a href="{{ url_for('stop_meeting') }}" class="btn btn-danger">Stop Meeting</a>
                         </li>
-                    {% endfor %}
+                        {% endfor %}
                     </ul>
                 </div>
-            {% else %}
+                {% else %}
                 <form method="POST" action="{{ url_for('start_meeting') }}">
                     <button type="submit" class="btn btn-primary">Start Meeting</button>
                 </form>
-            {% endif %}
-        {% endif %}        
+                {% endif %}
+                {% endif %}
+            </div>
+
+            <div class="logout">
+                <a href="{{ url_for('logout') }}">Log Out</a>
+            </div>
         </div>
-        <div class="logout">
-            <a href="{{ url_for('logout') }}">Log Out</a>
+
+        <div class="leaderboard-container">
+            <h2>Leaderboard</h2>
+            {% if leaderboard %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Student Name</th>
+                        <th>Total Marks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in leaderboard %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ student.username }}</td>
+                        <td>{{ student.total_marks }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No students have submitted assignments yet for this course.</p>
+            {% endif %}
         </div>
     </div>
 </body>
