@@ -18,7 +18,6 @@
             margin: 0;
             animation: gradientMove 6s infinite ease-in-out;
         }
-
         .dashboard-wrapper {
             display: flex;
             justify-content: center; /* Center the content */
@@ -27,7 +26,6 @@
             width: 90%;
             max-width: 1200px;
         }
-
         .container {
             flex: 1;
             max-width: 800px;
@@ -36,28 +34,23 @@
             border-radius: 10px;
             box-shadow: 10px 4px 10px rgba(0, 0, 0, 0.1);
         }
-
         h1 {
             text-align: center;
             color: #3b82f6;
         }
-
         h2 {
             font-size: 18px;
         }
-
         ul {
             list-style-type: none;
             padding: 0;
             margin: 20px 0;
         }
-
         ul li {
             margin-bottom: 15px;
             display: flex;
             align-items: center;
         }
-
         ul li a {
             text-decoration: none;
             color: #1f4037;
@@ -65,26 +58,21 @@
             margin-left: 10px;
             transition: color 0.3s ease;
         }
-
         ul li a:hover {
             color: #99f2c8;
         }
-
         .logout {
             text-align: center;
             margin-top: 30px;
         }
-
         .logout a {
             color: #dc3545;
             text-decoration: none;
             font-weight: bold;
         }
-
         .logout a:hover {
             text-decoration: underline;
         }
-
         .leaderboard-container {
             width: 300px; 
             background: #f9f9f9;
@@ -92,29 +80,23 @@
             border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
         }
-
         .leaderboard-container table {
             width: 100%;
             border-collapse: collapse;
         }
-
         .leaderboard-container th,
         .leaderboard-container td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
-
         .leaderboard-container th {
             background: #3b82f6;
             color: white;
         }
-
         .leaderboard-container tr:nth-child(even) {
             background: #f2f2f2;
         }
-
-        /* Original button styles */
         .btn {
             display: inline-block;
             padding: 10px 15px;
@@ -128,32 +110,24 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
-
         .btn-primary {
             background: #3b82f6;
         }
-
         .btn-primary:hover {
             background: #145b28;
         }
-
         .btn-success {
             background: #28a745;
         }
-
         .btn-success:hover {
             background: #218838;
         }
-
         .btn-danger {
             background: #dc3545;
         }
-
         .btn-danger:hover {
             background: #c82333;
         }
-
-        /* Enrolled courses section styles */
         .course-container {
             display: flex;
             flex-wrap: nowrap;
@@ -163,7 +137,6 @@
             padding: 10px;
             max-width: 100%;
         }
-
         .course-card {
             background: #f5f5f5;
             border: 1px solid #ddd;
@@ -176,12 +149,10 @@
             font-size: 12px;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-
         .course-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
         }
-
         .course-card h4 {
             font-size: 14px;
             margin-bottom: 5px;
@@ -190,7 +161,6 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
-
         .course-card button {
             font-family: 'Segoe UI', sans-serif;
             font-size: 10px;
@@ -202,11 +172,9 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
-
         .course-card button:hover {
             background: #c82333;
         }
-
         .leaderboard-container {
             width: 300px; 
             background: #f9f9f9;
@@ -214,28 +182,23 @@
             border-radius: 10px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
         }
-
         .leaderboard-container table {
             width: 100%;
             border-collapse: collapse;
         }
-
         .leaderboard-container th,
         .leaderboard-container td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
         }
-
         .leaderboard-container th {
             background: #3b82f6;
             color: white;
         }
-
         .leaderboard-container tr:nth-child(even) {
             background: #f2f2f2;
         }
-
         .course-dropdown {
             width: 100%;
             padding: 10px;
@@ -244,7 +207,6 @@
             border: 1px solid #ddd;
             font-size: 14px;
         }
-
         /* Button styles remain unchanged */
         .btn {
             display: inline-block;
@@ -259,27 +221,21 @@
             cursor: pointer;
             transition: background 0.3s ease;
         }
-
         .btn-primary {
             background: #3b82f6;
         }
-
         .btn-primary:hover {
             background: #145b28;
         }
-
         .btn-success {
             background: #28a745;
         }
-
         .btn-success:hover {
             background: #218838;
         }
-
         .btn-danger {
             background: #dc3545;
         }
-
         .btn-danger:hover {
             background: #c82333;
         }
@@ -290,11 +246,9 @@
         <div class="container">
             <h1>Dashboard</h1>
             <p>Welcome, {{ current_user.username }}</p>
-
             {% if current_user.role == 'teacher' %}
             <h2>{{ current_course.name }}</h2>
             {% endif %}
-
             <ul>
                 {% if current_user.role == 'teacher' %}
                 <li>
@@ -317,7 +271,6 @@
                 </li>
                 {% endif %}
             </ul>
-
             {% if current_user.role == 'student' %}
             <h2>Enrolled Courses</h2>
             <div class="course-container">
@@ -332,7 +285,6 @@
             </div>
             <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Explore Courses</a>
             {% endif %}
-
             <div class="section">
                 {% if current_user.role == 'student' %}
                 <h2>Active Meeting</h2>
@@ -368,25 +320,19 @@
                 {% endif %}
                 {% endif %}
             </div>
-
             <div class="logout">
                 <a href="{{ url_for('logout') }}">Log Out</a>
             </div>
         </div>
-
         <div class="leaderboard-container">
             <h2>Leaderboard</h2>
-
             {% if current_user.role == 'student' %}
-            <!-- Dropdown to select course -->
             <select class="course-dropdown" id="course-dropdown" onchange="updateLeaderboard()">
                 <option value="">Select Course</option>
                 {% for course in enrolled_courses %}
                 <option value="{{ course.id }}">{{ course.name }}</option>
                 {% endfor %}
             </select>
-
-            <!-- Table for leaderboard (will update based on course selection) -->
             <table id="leaderboard-table" style="display: none;">
                 <thead>
                     <tr>
@@ -396,11 +342,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Content will be dynamically filled -->
                 </tbody>
             </table>
             {% endif %}
-
             {% if current_user.role == 'teacher' %}
             <table>
                 <thead>
@@ -423,19 +367,16 @@
             {% endif %}
         </div>
     </div>
-
     <script>
         function updateLeaderboard() {
             var courseId = document.getElementById('course-dropdown').value;
-        
             if (courseId) {
                 fetch(`/leaderboard/${courseId}`)
                     .then(response => response.json())
                     .then(data => {
                         var table = document.getElementById('leaderboard-table');
                         var tbody = table.getElementsByTagName('tbody')[0];
-                        tbody.innerHTML = ''; // Clear existing rows
-        
+                        tbody.innerHTML = '';
                         if (data.students.length > 0) {
                             table.style.display = 'table';
                             data.students.forEach((student, index) => {
@@ -455,7 +396,6 @@
                 document.getElementById('leaderboard-table').style.display = 'none';
             }
         }
-        
     </script>
 </body>
 </html>
