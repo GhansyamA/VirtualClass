@@ -183,6 +183,47 @@ def dashboard():
 
         return render_template('dashboard.html', enrolled_courses=enrolled_courses, active_meetings=active_meetings, leaderboard=leaderboard)
 
+@app.route('/leaderboard/<int:course_id>', methods=['GET'])
+@login_required
+def get_leaderboard(course_id):
+    if current_user.role == 'student':
+        # Get enrolled students for the selected course
+        enrollments = supabase.table('enrollment').select('student_id').eq('course_id', course_id).execute()
+        student_ids = [e['student_id'] for e in enrollments.data] if enrollments.data else []
+
+        leaderboard = []
+        if student_ids:
+            students_response = supabase.table('user').select('id', 'username').in_('id', student_ids).execute()
+            students = {s['id']: s['username'] for s in students_response.data} if students_response.data else {}
+
+            # Get Assignments for the Selected Course
+            assignments_response = supabase.table('assignment').select('id').eq('course_id', course_id).execute()
+            assignment_ids = [a['id'] for a in assignments_response.data] if assignments_response.data else []
+
+            # Get Marks for Assignments
+            submissions_response = supabase.table('submission')\
+                .select('student_id', 'marks', 'assignment_id')\
+                .in_('assignment_id', assignment_ids).execute()
+
+            student_marks = {student_id: 0 for student_id in student_ids}
+            if submissions_response.data:
+                for submission in submissions_response.data:
+                    if submission['marks'] is not None:
+                        student_marks[submission['student_id']] += submission['marks']
+
+            # Build Leaderboard Data
+            for student_id in student_ids:
+                leaderboard.append({
+                    'student_id': student_id,
+                    'username': students.get(student_id, 'Unknown'),
+                    'total_marks': student_marks[student_id]
+                })
+
+            # Sort Leaderboard by Total Marks
+            leaderboard.sort(key=lambda x: x['total_marks'], reverse=True)
+
+        return jsonify({'students': leaderboard})
+    return jsonify({'error': 'Unauthorized'}), 403
 
 @app.route('/start_meeting', methods=['POST'])
 @login_required
