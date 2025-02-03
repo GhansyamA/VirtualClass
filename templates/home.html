@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Classroom</title>
+    <title>SkyLoom Virtual Classroom</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
@@ -36,12 +36,18 @@
             z-index: -1;
         }
         .title {
-            font-size: 3rem;
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00c6ff, #0072ff); /* Gradient effect */
+            -webkit-background-clip: text; /* Ensures text has gradient */
+            color: transparent; /* Makes the text transparent so the gradient shows */
             margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow for emphasis */
         }
         .description {
             font-size: 1.2rem;
             margin-bottom: 30px;
+            color: #4682B4; /* Darker light blue color */
         }
         .buttons {
             position: absolute;
@@ -83,8 +89,8 @@
         Your browser does not support the video tag.
     </video>
     <div class="container">
-        <h1 class="title">Welcome to Virtual Classroom</h1>
-        <p class="description">An interactive cloud-based learning platform for students and teachers.</p>
+        <h1 class="title">SkyLoom</h1>
+        <p class="description">Learn Anywhere, Anytime.</p>
     </div>
     <div class="buttons">
         <a href="{{ url_for('login') }}" class="login">Sign In</a>
