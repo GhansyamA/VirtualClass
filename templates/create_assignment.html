@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyLoom</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+{% block title %}Create Assignment | SkyLoom{% endblock %}
+{% block styles %}
+    {{ super() }}
     <style>
         body {
             font-family: Segoe UI;
@@ -26,6 +23,28 @@
             padding: 20px 30px;
             border-radius: 10px;
             box-shadow: 10px 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative; /* Needed for absolute positioning of the back button */
+        }
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #3b82f6;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        .back-btn:hover {
+            background: #1e5bca;
+        }
+        .back-btn i {
+            margin-right: 5px;
         }
         h1 {
             text-align: center;
@@ -52,62 +71,18 @@
             resize: vertical;
             min-height: 100px;
         }
-        .btn {
-            display: inline-block;
+        .btn-submit {
+            font-size: 16px;
             padding: 10px 15px;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            color: #fff;
-            border: none;
             border-radius: 5px;
-            text-decoration: none;
+            border: none;
+            background: #3b82f6;
+            color: #fff;
             cursor: pointer;
             transition: background 0.3s ease;
         }
-        .btn-primary {
-            background: #3b82f6;
-        }
-        .btn-primary:hover {
+        .btn-submit:hover {
             background: #1e5bca;
-        }
-        button {
-            font-size: 16px;
-            padding: 10px 15px;
-            border-radius: 5px;
-            border: none;
-            background: #3b82f6;
-            color: #fff;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        button:hover {
-            background: #145b28;
-        }
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back-link a {
-            font-size: 16px;
-            color: #3b82f6;
-            text-decoration: none;
-        }
-        .back-link a:hover {
-            text-decoration: underline;
-        }
-        .btn-dashboard {
-            background: #3b82f6;
-            font-size: 12px; /* Smaller button */
-            padding: 8px 12px; /* Adjust padding for size */
-            position: absolute; /* Position it absolutely */
-            top: 20px; /* Distance from top */
-            left: 20px; /* Distance from left */
-            border-radius: 5px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        .btn-dashboard:hover {
-            background: #218838;
         }
         .alert {
             padding: 15px;
@@ -115,29 +90,36 @@
             border-radius: 5px;
             font-size: 16px;
         }
-        
         .alert-success {
             background-color: #d4edda;
             color: #155724;
         }
-        
         .alert-danger {
             background-color: #f8d7da;
             color: #721c24;
         }
-        
         .error-message {
             color: #dc3545;
             font-size: 12px;
-        }        
+        }
     </style>
-</head>
-<body>
-    <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
-        <i class="fas home"></i> Home
-    </a>
+{% endblock %}
+{% block content %}
     <div class="container">
+        <a href="{{ url_for('view_assignments') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
         <h1>Create Assignment</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% set category, message = messages[-1] %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            </div>
+        {% endif %}
+        {% endwith %}
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="alert">
@@ -185,12 +167,8 @@
                 {% endif %}
             </div>
             <button type="submit" class="btn-submit">
-                <i class="fas fa-save"></i> Create Assignment
+                <i class="fas fa-save"></i> Upload
             </button>
         </form>
-        <div class="back-link">
-            <a href="{{ url_for('view_assignments') }}"><i class="fas fa-arrow-left"></i> Back to Assignments</a>
-        </div>
     </div>
-</body>
-</html>
+{% endblock %}

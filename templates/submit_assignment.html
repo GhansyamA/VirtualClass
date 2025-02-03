@@ -136,6 +136,16 @@
     </a>
     <div class="container">
         <h1>Submit Assignment: {{ assignment.title }}</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% set category, message = messages[-1] %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            </div>
+        {% endif %}
+        {% endwith %}
         <p><strong>Description:</strong> {{ assignment.description }}</p>
         <p><strong>Due Date:</strong> {{ assignment.due_date.replace('T', ' ') if assignment.due_date else '' }}</p>
         {% with messages = get_flashed_messages(with_categories=true) %}
