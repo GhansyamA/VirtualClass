@@ -38,6 +38,10 @@ def load_user(user_id):
         return User(id=user_data['id'], username=user_data['username'], role=user_data['role'])
     return None
 
+@app.route('/', methods=['GET', 'POST'])
+def home():
+    return render_template('home.html')
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
