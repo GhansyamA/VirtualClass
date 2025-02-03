@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignments</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+{% block title %}Assignments | SkyLoom{% endblock %}
+{% block styles %}
+    {{ super() }}
     <style>
         body {
             font-family: Segoe UI;
@@ -21,6 +18,28 @@
             padding: 20px 30px;
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        .back-btn {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #3b82f6;
+            color: #fff;
+            padding: 8px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+        .back-btn:hover {
+            background: #1e5bca;
+        }
+        .back-btn i {
+            margin-right: 5px;
         }
         h1 {
             text-align: center;
@@ -78,28 +97,9 @@
         .btn-primary:hover {
             background: #1e5bca;
         }
-        .no-assignments {
-            text-align: center;
-            color: #666;
-            font-style: italic;
-            margin-top: 20px;
-        }
-        .btn-dashboard {
-            background: #3b82f6;
-            font-size: 12px; /* Smaller button */
-            padding: 8px 12px; /* Adjust padding for size */
-            position: absolute; /* Position it absolutely */
-            top: 20px; /* Distance from top */
-            left: 20px; /* Distance from left */
-            border-radius: 5px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-        }
-        .btn-dashboard:hover {
-            background: #218838;
-        }
         .btn-danger {
-            background: red; /* Make it red */
-            float: right; /* Move it to the right */
+            background: red;
+            float: right;
         }
         .btn-danger:hover {
             background: #b22222;
@@ -109,7 +109,7 @@
             color: #fff;
         }
         .btn-secondary:hover {
-            background: #1a4c91; /* Darker blue on hover */
+            background: #1a4c91;
         }
         .submitted-message {
             background-color: #d4edda;
@@ -123,15 +123,18 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
     </style>
-</head>
-<body>
-    <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
-        <i class="fas home"></i> Home
-    </a>
+{% endblock %}
+
+{% block content %}
     <div class="container">
+        <a href="{{ url_for('dashboard') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
         <h1>Assignments</h1>
         {% if current_user.role == 'teacher' %}
-            <a href="{{ url_for('create_assignment') }}" class="create-btn"><i class="fas fa-plus"></i> Create Assignment</a>
+            <a href="{{ url_for('create_assignment') }}" class="create-btn">
+                <i class="fas fa-plus"></i> Create Assignment
+            </a>
         {% endif %} 
         {% if assignments %}
             {% for assignment in assignments %}
@@ -141,28 +144,31 @@
                     <p><strong>Due Date:</strong> {{ assignment.formatted_due_date }}</p>
                     {% if current_user.role == 'teacher' %}
                         <form action="{{ url_for('delete_assignment', assignment_id=assignment.id) }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </form>
-                    {% endif %}
-                    {% if current_user.role == 'teacher' %}
-                        <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" class="btn btn-secondary"><i class="fas fa-eye"></i> View Submissions</a>
+                        <a href="{{ url_for('view_submissions', assignment_id=assignment.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-eye"></i> View Submissions
+                        </a>
                     {% endif %}
                     {% if current_user.role == 'student' %}
                         {% if assignment.is_submitted %}
-                        <div class="submitted-message">Submitted</div>
+                            <div class="submitted-message">Submitted</div>
                         {% else %}
-                            <a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}" class="btn btn-primary"><i class="fas fa-upload"></i> Submit</a>
+                            <a href="{{ url_for('submit_assignment', assignment_id=assignment.id) }}" class="btn btn-primary">
+                                <i class="fas fa-upload"></i> Submit
+                            </a>
                         {% endif %}
                     {% endif %}
                 </div>
             {% endfor %}
         {% else %}
             {% if flag == 0 %}
-                <p class="no-assignments">Not enrolled to any courses</p>
+                <p class="no-assignments">Not enrolled in any courses.</p>
             {% else %}
                 <p class="no-assignments">No assignments uploaded yet.</p>
             {% endif %}
         {% endif %}
     </div>
-</body>
-</html>
+{% endblock %}

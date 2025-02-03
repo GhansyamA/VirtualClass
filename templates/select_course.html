@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Select a Course</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+{% block title %}Select Course | SkyLoom{% endblock %}
+{% block styles %}
+    {{ super() }}
     <style>
         body {
             font-family: Segoe UI;
@@ -12,7 +9,7 @@
             color: #000000;
             margin: 0;
             padding: 0;
-            height:100vh;
+            height: 100vh;
         }
         h1 {
             text-align: center;
@@ -75,11 +72,11 @@
         }
         .btn-dashboard {
             background: #3b82f6;
-            font-size: 12px; /* Smaller button */
-            padding: 8px 12px; /* Adjust padding for size */
-            position: absolute; /* Position it absolutely */
-            top: 20px; /* Distance from top */
-            left: 20px; /* Distance from left */
+            font-size: 12px;
+            padding: 8px 12px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
             border-radius: 5px;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
@@ -87,8 +84,8 @@
             background: #218838;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block content %}
     <div class="container">
         <h1>Select a Course</h1>
         {% if courses %}
@@ -107,5 +104,4 @@
         <a href="{{ url_for('create_course') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Create Course</a>
         {% endif %}
     </div>
-</body>
-</html>
+{% endblock %}

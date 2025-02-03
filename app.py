@@ -209,7 +209,7 @@ def start_meeting():
         'course_id': selected_course_id
     }]).execute()
     if response:
-        flash('Meeting started successfully! Share the link with students.', 'success')
+        flash('Meeting started successfully!', 'success')
         jitsi_url = f"https://meet.jit.si/{room_name}"
         return render_template('start_meeting.html', jitsi_url=jitsi_url)
     flash('Error starting the meeting. Please try again later.', 'danger')
@@ -248,7 +248,7 @@ def stop_meeting():
         active_meeting = response.data[0]
         response = supabase.table('active_meeting').delete().eq('id', active_meeting['id']).execute()
         if response:
-            flash('Meeting stopped successfully. You can now start a new meeting.', 'success')
+            flash('Meeting ended.', 'success')
             return redirect(url_for('dashboard'))
     flash('Error stopping the meeting. Please try again later.', 'danger')
     return redirect(url_for('dashboard'))

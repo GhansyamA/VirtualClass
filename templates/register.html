@@ -1,9 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+{% extends "base.html" %}
+{% block title %}SignUp | SkyLoom{% endblock %}
+{% block styles %}
+    {{ super() }}
     <style>
         body {
             font-family: Segoe UI;
@@ -17,7 +15,6 @@
             margin: 0;
             animation: gradientMove 6s infinite ease-in-out;
         }
-
         @keyframes gradientMove {
             0% {
                 background-position: 0% 50%;
@@ -29,7 +26,6 @@
                 background-position: 0% 50%;
             }
         }
-
         .register-container {
             background: rgba(255, 255, 255, 0.1);
             padding: 20px 30px;
@@ -39,24 +35,20 @@
             max-width: 400px;
             animation: fadeIn 1s ease-in-out;
         }
-
         .register-container h1 {
             text-align: center;
             margin-bottom: 20px;
             color: #000000;
         }
-
         .form-group {
             margin-bottom: 15px;
         }
-
         .form-group label {
             display: block;
             font-size: 14px;
             color: #000000;
             margin-bottom: 5px;
         }
-
         .form-group input,
         .form-group select {
             width: 100%;
@@ -68,14 +60,12 @@
             color: #000000;
             transition: all 0.3s ease;
         }
-
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
             border-color: #3b82f6;
             box-shadow: 0 0 10px #3b82f6;
         }
-
         .btn-submit {
             width: 100%;
             padding: 12px;
@@ -88,27 +78,22 @@
             cursor: pointer;
             transition: transform 0.2s, background 0.3s ease;
         }
-
         .btn-submit:hover {
             background: linear-gradient(135deg, #2563eb, #1e40af);
             transform: translateY(-2px);
         }
-
         .text-link {
             text-align: center;
             margin-top: 10px;
         }
-
         .text-link a {
             color: #000000;
             text-decoration: none;
             font-weight: bold;
         }
-
         .text-link a:hover {
             text-decoration: underline;
         }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -120,22 +105,20 @@
             }
         }
     </style>
-</head>
-<body>
+{% endblock %}
+{% block content %}
     <div class="register-container">
-        <h1>Register</h1>
-        <!-- Flash message display -->
+        <h1>Sign Up</h1>
         {% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-    <div class="flash-messages">
-        {% set category, message = messages[-1] %}
-        <div class="flash-message {{ category }}">
-            {{ message }}
-        </div>
-    </div>
-{% endif %}
-{% endwith %}
-
+        {% if messages %}
+            <div class="flash-messages">
+                {% set category, message = messages[-1] %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            </div>
+        {% endif %}
+        {% endwith %}
         <form method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
@@ -160,5 +143,4 @@
             <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a>.</p>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

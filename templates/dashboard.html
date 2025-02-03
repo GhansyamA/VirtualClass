@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+{% block title %}Dashboard | SkyLoom{% endblock %}
+{% block styles %}
+    {{ super() }}
     <style>
         body {
             font-family: Segoe UI;
@@ -18,9 +15,21 @@
             margin: 0;
             animation: gradientMove 6s infinite ease-in-out;
         }
+        .welcome-user {
+            font-family: 'Poppins', sans-serif; /* Clean, modern font */
+            font-size: 22px;
+            font-weight: 600;
+            color: #333; /* Dark gray for readability */
+            margin-bottom: 10px;
+            text-align: center; /* Center alignment */
+            background: linear-gradient(to right, #007bff, #00c6ff); /* Gradient effect */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }        
         .dashboard-wrapper {
             display: flex;
-            justify-content: center; /* Center the content */
+            justify-content: center;
             align-items: flex-start;
             gap: 20px;
             width: 90%;
@@ -28,7 +37,7 @@
         }
         .container {
             flex: 1;
-            max-width: 800px;
+            width: 1200px; /* Set fixed width */
             background: #fff;
             padding: 20px 30px;
             border-radius: 10px;
@@ -97,37 +106,6 @@
         .leaderboard-container tr:nth-child(even) {
             background: #f2f2f2;
         }
-        .btn {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .btn-primary {
-            background: #3b82f6;
-        }
-        .btn-primary:hover {
-            background: #145b28;
-        }
-        .btn-success {
-            background: #28a745;
-        }
-        .btn-success:hover {
-            background: #218838;
-        }
-        .btn-danger {
-            background: #dc3545;
-        }
-        .btn-danger:hover {
-            background: #c82333;
-        }
         .course-container {
             display: flex;
             flex-wrap: nowrap;
@@ -175,77 +153,92 @@
         .course-card button:hover {
             background: #c82333;
         }
-        .leaderboard-container {
-            width: 300px; 
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-        }
-        .leaderboard-container table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .leaderboard-container th,
-        .leaderboard-container td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        .leaderboard-container th {
-            background: #3b82f6;
-            color: white;
-        }
-        .leaderboard-container tr:nth-child(even) {
-            background: #f2f2f2;
-        }
-        .course-dropdown {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            font-size: 14px;
-        }
-        /* Button styles remain unchanged */
-        .btn {
+        .course-card a {
             display: inline-block;
-            padding: 10px 15px;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
+            background: #0069d9;
             color: #fff;
-            border: none;
-            border-radius: 5px;
+            padding: 5px 10px;
             text-decoration: none;
-            cursor: pointer;
+            border-radius: 3px;
+            transition: background 0.3s;
+        }
+        .course-card a:hover {
+            background: #0056b3;
+        }
+        .course-card .btn-primary {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 12px;
+            background-color: #0069d9;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 5px;
             transition: background 0.3s ease;
         }
-        .btn-primary {
-            background: #3b82f6;
+        .course-card .btn-primary:hover {
+            background-color: #0056b3;
         }
-        .btn-primary:hover {
-            background: #145b28;
+        .course-dropdown {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            color: #333;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
         }
-        .btn-success {
-            background: #28a745;
+        .course-dropdown option {
+            padding: 10px;
         }
-        .btn-success:hover {
-            background: #218838;
+        .explore-btn {
+            display: inline-block;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
         }
-        .btn-danger {
-            background: #dc3545;
+        .explore-btn:hover {
+            background-color: #218838;
         }
-        .btn-danger:hover {
-            background: #c82333;
+        .start-meeting-btn {
+            display: inline-block;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+            border: none;
         }
+        .start-meeting-btn:hover {
+            background-color: #0056b3;
+        }        
     </style>
-</head>
-<body>
+{% endblock %}
+{% block content %}
     <div class="dashboard-wrapper">
         <div class="container">
             <h1>Dashboard</h1>
-            <p>Welcome, {{ current_user.username }}</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% set category, message = messages[-1] %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            </div>
+        {% endif %}
+        {% endwith %}
+            <h2 class="welcome-user">Welcome, {{ current_user.username }}</h2>
             {% if current_user.role == 'teacher' %}
             <h2>{{ current_course.name }}</h2>
             {% endif %}
@@ -283,7 +276,7 @@
                 </div>
                 {% endfor %}
             </div>
-            <a href="{{ url_for('available_courses') }}" class="btn btn-primary">Explore Courses</a>
+            <a href="{{ url_for('available_courses') }}" class="explore-btn">Explore Courses</a>
             {% endif %}
             <div class="section">
                 {% if current_user.role == 'student' %}
@@ -315,7 +308,7 @@
                 </div>
                 {% else %}
                 <form method="POST" action="{{ url_for('start_meeting') }}">
-                    <button type="submit" class="btn btn-primary">Start Meeting</button>
+                    <button type="submit" class="start-meeting-btn">Start Meeting</button>
                 </form>
                 {% endif %}
                 {% endif %}
@@ -367,6 +360,9 @@
             {% endif %}
         </div>
     </div>
+{% endblock %}
+{% block scripts %}
+    {{ super() }}
     <script>
         function updateLeaderboard() {
             var courseId = document.getElementById('course-dropdown').value;
@@ -390,12 +386,8 @@
                         } else {
                             table.style.display = 'none';
                         }
-                    })
-                    .catch(error => console.error('Error fetching leaderboard:', error));
-            } else {
-                document.getElementById('leaderboard-table').style.display = 'none';
+                    });
             }
         }
     </script>
-</body>
-</html>
+{% endblock %}
