@@ -43,23 +43,37 @@
             font-size: 1.2rem;
             margin-bottom: 30px;
         }
+        .buttons {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            z-index: 10; /* Ensure buttons appear above other content */
+        }
         .buttons a {
             text-decoration: none;
-            padding: 12px 25px;
-            margin: 10px;
-            color: white;
-            border-radius: 5px;
-            font-size: 1rem;
+            padding: 8px 20px;
+            color: #333; /* Dark text color for better readability */
+            border-radius: 30px; /* Fully rounded corners */
+            font-size: 0.9rem;
             font-weight: bold;
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.6); /* Lighter transparency for blending */
+            border: 2px solid rgba(255, 255, 255, 0.8); /* Light border for subtle definition */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Softer shadow for a floating effect */
+            transition: all 0.3s ease;
         }
         .login {
-            background: #28a745;
+            background: rgba(40, 167, 69, 0.6); /* Semi-transparent green */
         }
         .signup {
-            background: #ffc107;
+            background: rgba(255, 193, 7, 0.6); /* Semi-transparent yellow */
         }
         .buttons a:hover {
-            opacity: 0.8;
+            opacity: 0.85;
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -71,10 +85,10 @@
     <div class="container">
         <h1 class="title">Welcome to Virtual Classroom</h1>
         <p class="description">An interactive cloud-based learning platform for students and teachers.</p>
-        <div class="buttons">
-            <a href="{{ url_for('login') }}" class="login">Login</a>
-            <a href="{{ url_for('register') }}" class="signup">Sign Up</a>
-        </div>
+    </div>
+    <div class="buttons">
+        <a href="{{ url_for('login') }}" class="login">Sign In</a>
+        <a href="{{ url_for('register') }}" class="signup">Sign Up</a>
     </div>
 </body>
 </html>
