@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyLoom</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+{% block title %}Available Courses | SkyLoom{% endblock %}
+{% block styles %}
+    {{ super() }}
     <style>
         body {
             font-family: Segoe UI;
@@ -12,20 +9,22 @@
             color: #000;
             display: flex;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            align-items: flex-start;
+            min-height: 100vh;
             margin: 0;
-        }
-        h1 {
-            text-align: center;
         }
         .container {
             background: rgba(255, 255, 255, 0.8);
             padding: 20px;
             border-radius: 10px;
             width: 100%;
-            max-width: 800px;
+            max-width: 600px; /* Reduced size */
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            margin-top: 50px; /* Moved lower */
+            position: relative; /* For positioning the back button */
+        }
+        h1 {
+            text-align: center;
         }
         ul {
             list-style-type: none;
@@ -73,17 +72,17 @@
             background: #ffc107;
             color: #333;
         }
-        .btn-dashboard {
+        .btn-back {
             background: #3b82f6;
             font-size: 12px;
             padding: 8px 12px;
             position: absolute;
-            top: 20px;
-            left: 20px;
+            top: 10px;
+            left: 10px; /* Positioned at the top left */
             border-radius: 5px;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
-        .btn-dashboard:hover {
+        .btn-back:hover {
             background: #218838;
         }
         .btn-danger {
@@ -116,19 +115,20 @@
             background: #dc3545;
         }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
-        <h1>Available Courses</h1>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-back">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1>Courses</h1>
         {% if session['flash_message'] %}
         <div class="alert alert-{{ session['flash_message'][1] }}">
             {{ session['flash_message'][0] }}
         </div>
         {% set _ = session.pop('flash_message', None) %}
         {% endif %}
-        <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
-            <i class="fas fa-home"></i> Home
-        </a>
         {% if available_courses %}
         <ul>
             {% for course in available_courses %}
@@ -143,14 +143,14 @@
                     <span class="pending-badge">Pending</span>
                 {% else %}
                     <button type="button" class="btn btn-primary" onclick="requestEnrollment({{ course.id }})">
-                        Request Enrollment
+                        Enroll
                     </button>
                 {% endif %}
             </li>
             {% endfor %}
         </ul>
         {% else %}
-        <p>No available courses to enroll in.</p>
+        <p>No courses available</p>
         {% endif %}
     </div>
     <script>
@@ -169,6 +169,5 @@
             })
             .catch(error => console.error('Error:', error));
         }
-    </script>    
-</body>
-</html>
+    </script>
+{% endblock %}
