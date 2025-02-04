@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyLoom</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+{% block title %}Course Details | SkyLoom{% endblock %}
+{% block styles %}
+    {{ super() }}
     <style>
         body {
             font-family: Segoe UI;
@@ -27,6 +24,22 @@
             border-radius: 10px;
             box-shadow: 10px 4px 10px rgba(0, 0, 0, 0.1);
         }
+        .btn-back {
+            background: #3b82f6;
+            font-size: 14px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+        .btn-back:hover {
+            background: #2563eb;
+        }
         h1 {
             text-align: center;
             color: #3b82f6;
@@ -34,7 +47,7 @@
         }
         .course-details {
             background: #f9f9f9;
-            padding: 20px;
+            padding: 0px;
             border-radius: 8px;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
         }
@@ -74,25 +87,13 @@
         .btn-success:hover {
             background: #218838;
         }
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back-link a {
-            font-size: 16px;
-            color: #3b82f6;
-            text-decoration: none;
-        }
-        .back-link a:hover {
-            text-decoration: underline;
-        }
         .btn-dashboard {
             background: #3b82f6;
-            font-size: 12px; /* Smaller button */
-            padding: 8px 12px; /* Adjust padding for size */
-            position: absolute; /* Position it absolutely */
-            top: 20px; /* Distance from top */
-            left: 20px; /* Distance from left */
+            font-size: 12px;
+            padding: 8px 12px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
             border-radius: 5px;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
@@ -100,14 +101,24 @@
             background: #218838;
         }
     </style>
-</head>
-<body>
-    <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
-        <i class="fas home"></i> Home
-    </a>
+{% endblock %}
+{% block content %}
     <div class="container">
+        <a href="{{ url_for('view_courses') }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i>
+        </a>
         <div class="course-details">
-            <h1>Course: {{ course.name }}</h1>
+            <h1>{{ course.name }}</h1>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% set category, message = messages[-1] %}
+                            <div class="flash-message {{ category }}">
+                                {{ message }}
+                            </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
             <p><strong>Description:</strong> {{ course.description }}</p>
             {% if current_user.role == 'teacher' %}
                 <h3>Enrollment Requests</h3>
@@ -122,7 +133,7 @@
                         {% endfor %}
                     </ul>
                 {% else %}
-                    <p>No enrollment requests.</p>
+                    <p>No requests</p>
                 {% endif %}
             {% endif %}
             {% if current_user.role == 'teacher' %}
@@ -159,9 +170,6 @@
                 {% endif %}
             {% endif %}
         </div>
-        <div class="back-link">
-            <a href="{{ url_for('view_courses') }}"><i class="fas fa-arrow-left"></i> Back to Courses</a>
-        </div>
     </div>
     <script>
         function processRequest(requestId, action) {
@@ -183,5 +191,4 @@
             .catch(error => console.error('Error:', error));
         }
     </script>
-</body>
-</html>
+{% endblock %}

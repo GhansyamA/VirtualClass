@@ -124,26 +124,25 @@
         }
     </style>
 {% endblock %}
-
 {% block content %}
     <div class="container">
         <a href="{{ url_for('dashboard') }}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i>
         </a>
         <h1>Assignments</h1>
         {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% set category, message = messages[-1] %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% set category, message = messages[-1] %}
+                    <div class="flash-message {{ category }}">
+                        {{ message }}
+                    </div>
                 </div>
-            </div>
-        {% endif %}
+            {% endif %}
         {% endwith %}
         {% if current_user.role == 'teacher' %}
             <a href="{{ url_for('create_assignment') }}" class="create-btn">
-                <i class="fas fa-plus"></i> Create Assignment
+                <i class="fas fa-plus"></i> Create
             </a>
         {% endif %} 
         {% if assignments %}

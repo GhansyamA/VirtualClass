@@ -23,7 +23,7 @@
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
             text-align: left;
-            position: relative; /* Added for positioning the back button */
+            position: relative;
         }
         .back-btn {
             position: absolute;
@@ -122,26 +122,23 @@
         .btn-primary:hover {
             background: #1e5bca;
         }
-        .back-link a:hover {
-            text-decoration: underline;
-        }
     </style>
 {% endblock %}
 {% block content %}
     <div class="container">
         <a href="{{ url_for('view_assignments') }}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i>
         </a>
         <h2>Submissions : {{ assignment.title }}</h2>
         {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% set category, message = messages[-1] %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% set category, message = messages[-1] %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
                 </div>
-            </div>
-        {% endif %}
+            {% endif %}
         {% endwith %}
         <p><strong>Description:</strong> {{ assignment.description }}</p>
         <p><strong>Due Date:</strong> {{ assignment.due_date.replace('T', ' ') if assignment.due_date else '' }}</p>
@@ -174,9 +171,6 @@
             </table>
             <button type="submit">Save Marks</button>
         </form>
-        <div class="back-link">
-            <a href="{{ url_for('view_assignments') }}"><i class="fas fa-arrow-left"></i> Back to Assignments</a>
-        </div>
     </div>
 {% endblock %}
 {% block scripts %}

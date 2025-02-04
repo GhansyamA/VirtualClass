@@ -460,17 +460,40 @@ def process_request(request_id, action):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
 
-@app.route('/unenroll/<int:course_id>', methods=['POST'])
+@app.route('/unenroll/<int:course_id>', methods=['POST']) 
 @login_required
 def unenroll(course_id):
     if current_user.role != 'student':
         flash('Only students can unenroll from courses.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('dashboard'))    
     response = supabase.table('enrollment').select('*').eq('student_id', current_user.id).eq('course_id', course_id).execute()
     if response and response.data:
         enrollment = response.data[0]
-        delete_response = supabase.table('enrollment').delete().eq('id', enrollment['id']).execute()
-        if delete_response:
+        assignments_response = supabase.table('assignment').select('*').eq('course_id', course_id).execute()
+        if assignments_response and assignments_response.data:
+            for assignment in assignments_response.data:
+                submission_response = supabase.table('submission') \
+                    .select('*') \
+                    .eq('student_id', current_user.id) \
+                    .eq('assignment_id', assignment['id']) \
+                    .execute()
+                if submission_response and submission_response.data:
+                    submission = submission_response.data[0]
+                    delete_submission_response = supabase.table('submission').delete().eq('id', submission['id']).execute()
+                    if delete_submission_response:
+                        file_path = f"VirtualClassBucket/submissions/{submission['file_name']}"
+                        storage = supabase.storage
+                        storage.from_("VirtualClassBucket").remove([file_path])
+
+                        flash('Your submission has been removed successfully.', 'success')
+                    else:
+                        flash('Error removing your submission from the database.', 'danger')
+                else:
+                    flash('No submission found for this assignment.', 'warning')
+        else:
+            flash('No assignments found for this course.', 'warning')
+        delete_enrollment_response = supabase.table('enrollment').delete().eq('id', enrollment['id']).execute()
+        if delete_enrollment_response:
             flash('You have successfully unenrolled from the course.', 'success')
         else:
             flash('Error unenrolling from the course. Please try again later.', 'danger')

@@ -14,7 +14,7 @@
         }
         .container {
             max-width: 900px;
-            margin: 80px auto 40px; /* Adjusted margin for fixed navbar */
+            margin: 80px auto 40px;
             background: rgba(255, 255, 255, 0.5);
             padding: 20px 30px;
             border-radius: 10px;
@@ -107,7 +107,7 @@
 {% block content %}
     <div class="container">
         <a href="{{ url_for('dashboard') }}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i>
         </a>
         <h1>Notes</h1>
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -121,7 +121,7 @@
         {% endif %}
         {% endwith %}
         {% if current_user.role == 'teacher' %}
-        <a href="{{ url_for('upload_notes') }}" class="upload-btn"><i class="fas fa-upload"></i> Upload Notes</a>
+        <a href="{{ url_for('upload_notes') }}" class="upload-btn"><i class="fas fa-upload"></i> Upload </a>
         {% endif %}
         {% if notes %}
         <ul>

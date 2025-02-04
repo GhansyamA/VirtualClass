@@ -13,7 +13,7 @@
             padding: 0;
             text-align: center;
             overflow: hidden;
-            background: #000; /* fallback color */
+            background: #000;
         }
         .container {
             width: 100%;
@@ -22,7 +22,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            color: #333; /* Darker font color for visibility */
+            color: #333;
             position: relative;
             z-index: 1;
         }
@@ -38,11 +38,11 @@
         .title {
             font-size: 4rem;
             font-weight: bold;
-            background: linear-gradient(90deg, #00c6ff, #0072ff); /* Gradient effect */
-            -webkit-background-clip: text; /* Ensures text has gradient */
-            color: transparent; /* Makes the text transparent so the gradient shows */
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            color: transparent;
             margin-bottom: 20px;
-            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow for emphasis */
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
         }
         .description {
             font-size: 1.2rem;
@@ -56,26 +56,26 @@
             display: flex;
             flex-direction: row;
             gap: 12px;
-            z-index: 10; /* Ensure buttons appear above other content */
+            z-index: 10;
         }
         .buttons a {
             text-decoration: none;
             padding: 8px 20px;
-            color: #333; /* Dark text color for better readability */
-            border-radius: 30px; /* Fully rounded corners */
+            color: #333;
+            border-radius: 30px;
             font-size: 0.9rem;
             font-weight: bold;
             display: inline-block;
-            background: rgba(255, 255, 255, 0.6); /* Lighter transparency for blending */
-            border: 2px solid rgba(255, 255, 255, 0.8); /* Light border for subtle definition */
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Softer shadow for a floating effect */
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
         }
         .login {
-            background: rgba(40, 167, 69, 0.6); /* Semi-transparent green */
+            background: rgba(40, 167, 69, 0.6);
         }
         .signup {
-            background: rgba(255, 193, 7, 0.6); /* Semi-transparent yellow */
+            background: rgba(255, 193, 7, 0.6);
         }
         .buttons a:hover {
             opacity: 0.85;

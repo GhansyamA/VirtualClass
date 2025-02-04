@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SkyLoom</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% extends "base.html" %}
+{% block title %}Create Course | SkyLoom{% endblock %}
+{% block styles %}
+    {{ super() }}
     <style>
         body {
             font-family: Segoe UI;
@@ -20,13 +17,14 @@
         }
         .container {
             width:700px;
-            max-width: 1000px; /* Increased width for the content box */
+            max-width: 500px;
             margin: 40px auto;
             background: #fff;
             padding: 20px 40px;
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            text-align: left; /* Left aligned content */
+            text-align: left;
+            position: relative;
         }
         h1 {
             text-align: center;
@@ -69,88 +67,52 @@
         button:hover {
             background: #0066cc;
         }
-        .back-link {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .back-link a {
-            font-size: 16px;
-            color: #3a7bd5;
-            text-decoration: none;
-        }
-        .back-link a:hover {
-            text-decoration: underline;
-        }
-        .btn-dashboard {
+        .btn-back {
+            position: absolute;
+            top: 20px;
+            left: 20px;
             background: #3b82f6;
-            font-size: 12px; /* Smaller button */
-            padding: 8px 12px; /* Adjust padding for size */
-            position: absolute; /* Position it absolutely */
-            top: 20px; /* Distance from top */
-            left: 20px; /* Distance from left */
+            padding: 8px 12px;
+            font-size: 14px;
+            color: #fff;
+            text-decoration: none;
             border-radius: 5px;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
-        .btn-dashboard:hover {
-            background: #218838;
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 15px;
-            font-size: 14px;
-            font-weight: bold;
-            text-align: center;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            text-decoration: none;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .btn-primary {
-            background: #3b82f6;
-        }
-        .btn-primary:hover {
-            background: #1e5bca;
+        .btn-back:hover {
+            background: #1e40af;
         }
     </style>
-</head>
-<body>
-    <a href="{{ url_for('dashboard') }}" class="btn btn-dashboard">
-        <i class="fas home"></i> Home
-    </a>
+{% endblock %}
+{% block content %}
     <div class="container">
+        <a href="{{ url_for('select_course') }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i>
+        </a>
         <h1>Create Course</h1>
         {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% set category, message = messages[-1] %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% set category, message = messages[-1] %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
+                        </div>
                 </div>
-            </div>
-        {% endif %}
+            {% endif %}
         {% endwith %}
         <form method="POST">
             {{ form.hidden_tag() }}
             <label for="name">{{ form.name.label }}</label>
             <div class="form-group">
-                
                 {{ form.name(class="form-control") }}
             </div>
             <label for="description">{{ form.description.label }}</label>
             <div class="form-group">
-                
                 {{ form.description(class="form-control") }}
             </div>
             <button type="submit" class="btn-submit">
                 <i class="fas fa-plus-circle"></i> Create Course
             </button>
         </form>
-
-        <div class="back-link">
-            <a href="{{ url_for('select_course') }}"><i class="fas fa-arrow-left"></i> Back to Course Selection</a>
-        </div>
     </div>
-</body>
-</html>
+{% endblock %}

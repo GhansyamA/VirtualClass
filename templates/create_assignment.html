@@ -23,7 +23,7 @@
             padding: 20px 30px;
             border-radius: 10px;
             box-shadow: 10px 4px 10px rgba(0, 0, 0, 0.1);
-            position: relative; /* Needed for absolute positioning of the back button */
+            position: relative;
         }
         .back-btn {
             position: absolute;
@@ -107,27 +107,16 @@
 {% block content %}
     <div class="container">
         <a href="{{ url_for('view_assignments') }}" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i>
         </a>
         <h1>Create Assignment</h1>
         {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flash-messages">
-                {% set category, message = messages[-1] %}
-                <div class="flash-message {{ category }}">
-                    {{ message }}
-                </div>
-            </div>
-        {% endif %}
-        {% endwith %}
-        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="alert">
-                    {% for category, message in messages %}
-                        <div class="alert-{{ category }}">
-                            <p>{{ message }}</p>
+                <div class="flash-messages">
+                    {% set category, message = messages[-1] %}
+                        <div class="flash-message {{ category }}">
+                            {{ message }}
                         </div>
-                    {% endfor %}
                 </div>
             {% endif %}
         {% endwith %}
